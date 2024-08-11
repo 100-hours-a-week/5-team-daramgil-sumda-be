@@ -4,3 +4,14 @@ spring:
   profiles:
     active: local
     include: my
+
+  datasource:
+    url: jdbc:postgresql://${DB_URL}:5432/sumda
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none  # ?? ????? ??, ??????? ??? ??
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
