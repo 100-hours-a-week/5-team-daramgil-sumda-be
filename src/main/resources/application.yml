@@ -6,24 +6,32 @@ spring:
     include: my
 
   datasource:
-    url: jdbc:postgresql://${DB_URL}:5432/sumda
+    url: jdbc:mysql://localhost:3306/sumda  # MySQL 사용
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-    driver-class-name: org.postgresql.Driver
+    driver-class-name: com.mysql.cj.jdbc.Driver  # MySQL 드라이버 클래스 네임 수정
   jpa:
     hibernate:
-      ddl-auto: none  # ?? ????? ??, ??????? ??? ??
+      ddl-auto: none  # 스키마 자동 생성 옵션을 none으로 설정
     show-sql: true
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    database-platform: org.hibernate.dialect.MySQLDialect  # MySQL Dialect로 변경
 
   security:
     oauth2:
       client:
         registration:
           kakao:
-            client-id: 3c09d35b72aef8590959b89af19f8e93
+            client_id: 64a856691dabaead2febdfd9240d721b
+            provider: kakao
             client-authentication-method: POST
             authorization-grant-type: authorization_code
-            redirect-uri: "https://localhost:3000/oauth"
+            redirect-uri: "http://localhost:3000/auth"
             scope: profile_nickname, profile_image, account_email
             client-name: Kakao
+
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id

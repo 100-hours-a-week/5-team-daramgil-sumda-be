@@ -40,3 +40,5 @@ out/
 
 .env
 
+#include file
+/src/main/resources/application.yml
