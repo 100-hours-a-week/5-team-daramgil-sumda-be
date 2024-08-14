@@ -21,7 +21,7 @@ spring:
       client:
         registration:
           kakao:
-            client_id: 64a856691dabaead2febdfd9240d721b
+            client_id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID:default_client_id}
             provider: kakao
             client-authentication-method: POST
             authorization-grant-type: authorization_code
