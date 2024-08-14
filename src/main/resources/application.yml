@@ -15,3 +15,15 @@ spring:
       ddl-auto: none  # ?? ????? ??, ??????? ??? ??
     show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: {your-client-id}
+            client-authentication-method: POST
+            authorization-grant-type: authorization_code
+            redirect-uri: "https://localhost:3000/oauth"
+            scope: profile_nickname, profile_image, account_email
+            client-name: Kakao
