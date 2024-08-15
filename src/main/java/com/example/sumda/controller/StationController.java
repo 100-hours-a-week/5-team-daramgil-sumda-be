@@ -5,6 +5,8 @@ import com.example.sumda.DTO.TMDTO;
 import com.example.sumda.service.MsrstnListService;
 import com.example.sumda.service.NearbyMsrstnListService;
 import com.example.sumda.service.TMStdrCrdntService;
+import com.example.sumda.service.StationService;
+import com.example.sumda.utils.ResponseUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,13 +18,18 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Collections;
 import java.util.List;
 
-@RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/station")
+@RequestMapping("/api/stations")
 public class StationController {
     private final MsrstnListService msrstnListService;
     private final TMStdrCrdntService tmStdrCrdntService;
     private final NearbyMsrstnListService nearbyMsrstnListService;
+    private final StationService stationService;
+
+    @GetMapping
+    public ResponseEntity<?> getAllStation(@RequestParam String stationName, @RequestParam int page, @RequestParam int size) {
+        return ResponseUtils.createResponse(HttpStatus.OK, "Success", stationService.getStationContains(stationName, page, size));
+    }
 
     // 측정소 리스트 확인
     @GetMapping("/msrstn-list")
