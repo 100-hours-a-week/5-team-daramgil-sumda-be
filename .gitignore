@@ -40,5 +40,12 @@ out/
 
 .env
 
-# Ignore application.yml file
-/src/main/resources/application.yml
+### Qclass ###
+**/src/main/generated/
+
+### application.yml ###
+**/src/main/resources/application.yml
+
+### application-my.yml ###
+out/
+application-my.yml
