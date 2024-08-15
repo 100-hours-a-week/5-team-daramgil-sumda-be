@@ -1,6 +1,14 @@
 package com.example.sumda.service;
 
+import com.example.sumda.DTO.AirInfoDTO;
+import com.example.sumda.DTO.StationDTO;
+import com.example.sumda.DTO.TMDTO;
+import com.example.sumda.entity.AirInfo;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
@@ -8,6 +16,9 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 public class MsrstnListService {
@@ -34,7 +45,7 @@ public class MsrstnListService {
     }
 
     // 외부 API 호출 메서드
-    public String getMsrstnList() throws Exception {
+    public List<StationDTO> getMsrstnList() throws Exception {
         HttpClient client = HttpClient.newHttpClient();
 
         // 생성된 URL 가져오기
@@ -51,7 +62,18 @@ public class MsrstnListService {
 
         // 응답 처리
         if (response.statusCode() == 200) {
-            return response.body();
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            // JSON 전체를 JsonNode로 파싱
+            JsonNode rootNode = objectMapper.readTree(response.body());
+            // "items" 배열만 추출
+            JsonNode itemsNode = rootNode.path("response").path("body").path("items");
+            // itemsNode를 Item 배열로 변환
+//            StationDTO[] stationArray = objectMapper.treeToValue(itemsNode, StationDTO[].class);
+
+            List<StationDTO> stationList = objectMapper.convertValue(itemsNode, new TypeReference<List<StationDTO>>() {});
+
+            return stationList;
         } else {
             throw new RuntimeException("Failed to get data from API: " + response.statusCode());
         }

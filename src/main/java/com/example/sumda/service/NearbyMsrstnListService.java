@@ -1,5 +1,9 @@
 package com.example.sumda.service;
 
+import com.example.sumda.DTO.StationDTO;
+import com.example.sumda.DTO.TMDTO;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -9,6 +13,8 @@ import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 public class NearbyMsrstnListService {
@@ -23,19 +29,19 @@ public class NearbyMsrstnListService {
     private final String ver = "&ver=1.2";
 
     // URL을 생성하는 메서드
-    private String makeUrl(String tmX, String tmY) throws UnsupportedEncodingException {
+    private String makeUrl(Double tmX, Double tmY) throws UnsupportedEncodingException {
         // TM_X, TM_Y를 URL 인코딩
-        String encodedTM_X = URLEncoder.encode(tmX, "UTF-8");
-        String encodedTM_Y = URLEncoder.encode(tmY, "UTF-8");
+        String encodedTM_X = URLEncoder.encode(String.valueOf(tmX), "UTF-8");
+        String encodedTM_Y = URLEncoder.encode(String.valueOf(tmY), "UTF-8");
 
         return new StringBuilder()
                 .append(BASE_URL)
                 .append(apiUri)
                 .append("?ServiceKey=")
                 .append(serviceKey)
-                .append("&tmX=") // '&' 추가
+                .append("&tmX=")
                 .append(encodedTM_X)
-                .append("&tmY=") // '&' 추가
+                .append("&tmY=")
                 .append(encodedTM_Y)
                 .append(defaultQueryParam)
                 .append(ver)
@@ -43,7 +49,7 @@ public class NearbyMsrstnListService {
     }
 
     // 외부 API 호출 메서드
-    public String getNearbyMsrstnList(String tmX, String tmY) throws Exception {
+    public List<StationDTO> getNearbyMsrstnList(Double tmX, Double tmY) throws Exception {
         HttpClient client = HttpClient.newHttpClient();
 
         // 생성된 URL 가져오기
@@ -60,7 +66,15 @@ public class NearbyMsrstnListService {
 
         // 응답 처리
         if (response.statusCode() == 200) {
-            return response.body();
+            ObjectMapper objectMapper = new ObjectMapper();
+            // JSON 전체를 JsonNode로 파싱
+            JsonNode rootNode = objectMapper.readTree(response.body());
+            // "items" 배열만 추출
+            JsonNode itemsNode = rootNode.path("response").path("body").path("items");
+            // itemsNode를 Item 배열로 변환
+            StationDTO[] stationArray = objectMapper.treeToValue(itemsNode, StationDTO[].class);
+
+            return Arrays.asList(stationArray);
         } else {
             throw new RuntimeException("Failed to get data from API: " + response.statusCode());
         }
