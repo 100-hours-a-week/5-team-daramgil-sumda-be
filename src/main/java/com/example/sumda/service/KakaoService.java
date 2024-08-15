@@ -13,6 +13,7 @@ import com.example.sumda.entity.User;
 import com.example.sumda.repository.UserRepository;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import com.example.sumda.controller.KakaoController;
 
 @Slf4j
 @Service
@@ -86,5 +87,37 @@ public class KakaoService {
         userRepository.save(user);
 
         return userInfo;
+    }
+
+    // 로그아웃
+    @Transactional
+    public void logoutFromKakao(String accessToken) {
+        WebClient.create(KAUTH_USER_URL_HOST)
+                .post()
+                .uri("/v1/user/logout")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("Invalid Parameter")))
+                .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new RuntimeException("Internal Server Error")))
+                .bodyToMono(Void.class)
+                .block();
+
+        log.info("[Kakao Service] User logged out from Kakao successfully.");
+    }
+
+    // 회원 탈퇴
+    @Transactional
+    public void unlinkKakaoAccount(String accessToken) {
+        WebClient.create(KAUTH_USER_URL_HOST)
+                .post()
+                .uri("/v1/user/unlink")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("Invalid Parameter")))
+                .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new RuntimeException("Internal Server Error")))
+                .bodyToMono(Void.class)
+                .block();
+
+        log.info("[Kakao Service] User account unlinked from Kakao successfully.");
     }
 }
