@@ -26,7 +26,7 @@ public class NearbyMsrstnListService {
     private final String BASE_URL = "http://apis.data.go.kr/B552584/MsrstnInfoInqireSvc";
     private final String apiUri = "/getNearbyMsrstnList";
     private final String defaultQueryParam = "&returnType=json"; // JSON 형식으로 반환
-    private final String ver = "&ver=1.2";
+    private final String ver = "&ver=1.1";
 
     // URL을 생성하는 메서드
     private String makeUrl(Double tmX, Double tmY) throws UnsupportedEncodingException {
