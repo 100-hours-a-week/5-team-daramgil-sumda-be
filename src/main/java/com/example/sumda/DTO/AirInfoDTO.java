@@ -7,20 +7,20 @@ import lombok.Setter;
 public class AirInfoDTO {
     private String status;
     private String message;
-    private int khaiGrade; // 통합대기환경 지수
-    private int khaiValue; // 통합대기환경 수치
-    private int pm10Grade; // 미세먼지 지수
-    private int pm10Value; // 미세먼지 농도
-    private int pm25Grade; // 초미세먼지 지수
-    private int pm25Value; // 초미세먼지 농도
-    private int o3Grade; // 오존 지수
-    private float o3Value; // 오존 농도
-    private int no2Grade; // 이산화질소 지수
-    private float no2Value; // 이산화질소 농도
-    private int coGrade; // 일산화탄소 지수
-    private float coValue; // 일산화탄소 농도
-    private int so2Grade; // 아황산가스 지수
-    private float so2Value; // 아황산가스 농도
+    private String khaiGrade; // 통합대기환경 지수
+    private String khaiValue; // 통합대기환경 수치
+    private String pm10Grade; // 미세먼지 지수
+    private String pm10Value; // 미세먼지 농도
+    private String pm25Grade; // 초미세먼지 지수
+    private String pm25Value; // 초미세먼지 농도
+    private String o3Grade; // 오존 지수
+    private String o3Value; // 오존 농도
+    private String no2Grade; // 이산화질소 지수
+    private String no2Value; // 이산화질소 농도
+    private String coGrade; // 일산화탄소 지수
+    private String coValue; // 일산화탄소 농도
+    private String so2Grade; // 아황산가스 지수
+    private String so2Value; // 아황산가스 농도
 
     private String pm25Grade1h; // 초미세먼지
     private String pm10Value24; // 미세먼지 24시간 예측이동농도
