@@ -74,8 +74,9 @@ public class AirInfoService {
             JsonNode rootNode = objectMapper.readTree(response.body());
             // "items" 배열만 추출
             JsonNode itemsNode = rootNode.path("response").path("body").path("items");
-
+            System.out.println(itemsNode.toString()); // itemsNode의 내용 확인
             List<AirInfoDTO> airInfoList = objectMapper.convertValue(itemsNode, new TypeReference<List<AirInfoDTO>>() {});
+            System.out.println(airInfoList); // airInfoList의 내용 확인
 
             // 리스트가 비어있지 않으면 첫 번째 항목 반환
             if (!airInfoList.isEmpty()) {
