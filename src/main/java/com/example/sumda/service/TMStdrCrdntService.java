@@ -1,7 +1,6 @@
 package com.example.sumda.service;
 
 import com.example.sumda.DTO.TMDTO;
-import com.example.sumda.entity.AirInfo;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

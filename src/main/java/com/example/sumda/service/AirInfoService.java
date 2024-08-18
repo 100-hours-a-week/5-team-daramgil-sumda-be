@@ -1,12 +1,16 @@
 package com.example.sumda.service;
 
 import com.example.sumda.DTO.AirInfoDTO;
-import com.example.sumda.DTO.StationDTO;
-import com.example.sumda.entity.AirInfo;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
@@ -15,14 +19,18 @@ import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
+import java.time.Duration;
 import java.util.List;
-import java.util.Arrays;
+
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class AirInfoService {
     @Value("${api.service.key}")
     private String serviceKey;
+
+    private final RedisTemplate<String, Object> redisTemplate;
 
     // URL 구성 요소
     private final String BASE_URL = "http://apis.data.go.kr/B552584/ArpltnInforInqireSvc";
@@ -30,6 +38,33 @@ public class AirInfoService {
     private final String dataTerm = "&dataTerm=DAILY"; // 필수 - 요청 데이터기간(1일: DAILY, 1개월: MONTH, 3개월: 3MONTH)
     private final String defaultQueryParam = "&returnType=json"; // JSON 형식으로 반환
     private final String ver = "&ver=1.4";
+
+
+    // 측정소별 실시간 측정정보 - 대기질 정보
+    public AirInfoDTO getLatestAirQualityData(String stationName) throws Exception {
+        long startTime = System.currentTimeMillis();
+        // Redis에 저장된 데이터가 있는지 확인
+        AirInfoDTO airInfoDTO = (AirInfoDTO) redisTemplate.opsForValue().get(stationName);
+
+
+
+        if(airInfoDTO == null) {
+            airInfoDTO = fetchFromPublicAPi(stationName);
+            redisTemplate.opsForValue().set(stationName, airInfoDTO, Duration.ofDays(1));       //1시간으로 TTL 설정
+            System.out.println("캐시에 데이터 없을 때 : ");
+        } else {
+            System.out.println("캐시에 데이터 있을 때 : ");
+        }
+
+
+        // Record end time
+        long endTime = System.currentTimeMillis();
+
+        // Calculate duration
+        long duration = endTime - startTime;
+        System.out.println("Duration: " + duration + "ms");
+        return airInfoDTO;
+    }
 
     // URL을 생성하는 메서드
     private String makeUrl(String stationName) throws UnsupportedEncodingException {
@@ -50,8 +85,8 @@ public class AirInfoService {
                 .toString();
     }
 
-    // 측정소별 실시간 측정정보 - 대기질 정보
-    public AirInfoDTO getLatestAirQualityData(String stationName) throws Exception {
+    // 공공 API에서 데이터 가져오기
+    private AirInfoDTO fetchFromPublicAPi(String stationName) throws Exception {
         HttpClient client = HttpClient.newHttpClient();
 
         // 생성된 URL 가져오기
@@ -82,9 +117,11 @@ public class AirInfoService {
             if (!airInfoList.isEmpty()) {
                 return airInfoList.get(0); // 가장 최근 데이터
             } else {
+                log.error("No air quality data available.");
                 throw new RuntimeException("No air quality data available.");
             }
         } else {
+            log.error("Failed to get data from API: {}", response.statusCode());
             throw new RuntimeException("Failed to get data from API: " + response.statusCode());
         }
     }

@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum ErrorCode {
+
+
     // 서버 오류
     SEVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,  "서버 오류");
 

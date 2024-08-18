@@ -32,6 +32,7 @@ public class AirInfoController {
             AirInfoDTO dto = airInfoService.getLatestAirQualityData(stationName);
             return ResponseEntity.ok(dto);
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             return ResponseEntity.status(500).body(null);
         }
     }
