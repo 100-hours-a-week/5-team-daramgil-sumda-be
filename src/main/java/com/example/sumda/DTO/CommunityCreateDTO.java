@@ -1,26 +1,19 @@
 package com.example.sumda.DTO;
 
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Timestamp;
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class CommunityDTO {
-
-    private long communityId;
+public class CommunityCreateDTO {
 
     private long userId;
 
     private String address;
 
-    private int likes;
-
     private String imageUrl;
-
-    private Timestamp createdAt;
-
 }
