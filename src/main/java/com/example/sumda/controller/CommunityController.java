@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 
 import java.util.List;
 
@@ -30,12 +32,29 @@ public class CommunityController {
         }
     }
 
-    // 게시글 등록
+    // 게시글 작성(이미지 필수)
     @PostMapping("/create-post")
-    public ResponseEntity<?> createPost(@RequestBody CommunityCreateDTO communityCreateDTO) {
+    public ResponseEntity<?> createPost(@RequestParam("userId") long userId,
+                                        @RequestParam("address") String address,
+                                        @RequestParam(value = "image")MultipartFile imageFile) {
         try {
+            // 이미지 파일이 없는 경우 예외 발생
+            if (imageFile == null || imageFile.isEmpty()) {
+                throw new IllegalArgumentException("이미지는 반드시 등록해야 합니다.");
+            }
+
+            CommunityCreateDTO communityCreateDTO = new CommunityCreateDTO();
+            communityCreateDTO.setUserId(userId);
+            communityCreateDTO.setAddress(address);
+
+            // 이미지 파일 처리
+            String imagePath = communityService.saveImage(imageFile);
+            communityCreateDTO.setImageUrl(imagePath); // 이미지 경로 설정
+
             CommunityDTO createdPost = communityService.createPost(communityCreateDTO);
             return ResponseUtils.createResponse(HttpStatus.CREATED, "게시글이 성공적으로 등록되었습니다.", createdPost);
+        } catch (IllegalArgumentException e) {
+            return ResponseUtils.createResponse(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
             return ResponseUtils.createResponse(HttpStatus.INTERNAL_SERVER_ERROR, "게시글 등록에 실패했습니다.");
         }

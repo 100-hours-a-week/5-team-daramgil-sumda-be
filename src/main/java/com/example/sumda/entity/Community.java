@@ -34,7 +34,4 @@ public class Community {
     @Column(name = "created_at")
     private Timestamp createdAt; // 생성일자
 
-    @Column(name = "deleted_at")
-    private Timestamp deletedAt; // 삭제일자
-
 }
