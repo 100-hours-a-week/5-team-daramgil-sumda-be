@@ -7,8 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;  // Use this to fetch query params
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/recommend")
@@ -18,11 +19,11 @@ public class TemperatureOutfitController {
     @Autowired
     private TemperatureOutfitService temperatureOutfitService;
 
-    // Endpoint to get outfit recommendation based on temperature
+    // Endpoint to get all outfit recommendations for different temperature ranges
     @GetMapping("/style")
-    public ResponseEntity<TemperatureOutfit> getRecommendation(@RequestParam("temperature") double temperature) {
-        // Call the service method to get the outfit recommendation based on temperature
-        TemperatureOutfit response = temperatureOutfitService.getRecommendation(temperature);
+    public ResponseEntity<List<TemperatureOutfit>> getAllRecommendations() {
+        // Call the service method to get all outfit recommendations
+        List<TemperatureOutfit> response = temperatureOutfitService.getAllRecommendations();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
