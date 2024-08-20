@@ -1,19 +1,21 @@
 package com.example.sumda.service;
 
-import io.netty.handler.codec.http.HttpHeaderValues;
-import jakarta.transaction.Transactional;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.stereotype.Service;
+import com.example.sumda.DTO.KakaoUserInfoResponseDto;
 import com.example.sumda.dto.KakaoTokenResponseDto;
 import com.example.sumda.dto.KakaoUserInfoResponseDto;
 import com.example.sumda.entity.User;
 import com.example.sumda.repository.UserRepository;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
-import com.example.sumda.controller.KakaoController;
+import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -23,101 +25,110 @@ public class KakaoService {
     private final String KAUTH_TOKEN_URL_HOST;
     private final String KAUTH_USER_URL_HOST;
     private final UserRepository userRepository;
+    private final RestTemplate restTemplate;
 
-
-    // 생성자 주입 방식으로 변경
     public KakaoService(@Value("${spring.security.oauth2.client.registration.kakao.client_id}") String clientId, UserRepository userRepository) {
         this.clientId = clientId;
         this.userRepository = userRepository;
         this.KAUTH_TOKEN_URL_HOST = "https://kauth.kakao.com";
         this.KAUTH_USER_URL_HOST = "https://kapi.kakao.com";
+        this.restTemplate = new RestTemplate();
     }
 
     public String getAccessTokenFromKakao(String code) {
+        String url = KAUTH_TOKEN_URL_HOST + "/oauth/token";
 
-        KakaoTokenResponseDto kakaoTokenResponseDto = WebClient.create(KAUTH_TOKEN_URL_HOST).post()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("https")
-                        .path("/oauth/token")
-                        .queryParam("grant_type", "authorization_code")
-                        .queryParam("client_id", clientId)
-                        .queryParam("code", code)
-                        .build(true))
-                .header(HttpHeaders.CONTENT_TYPE, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString())
-                .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("Invalid Parameter")))
-                .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new RuntimeException("Internal Server Error")))
-                .bodyToMono(KakaoTokenResponseDto.class)
-                .block();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", "application/x-www-form-urlencoded");
 
-        log.info(" [Kakao Service] Access Token ------> {}", kakaoTokenResponseDto.getAccessToken());
-        log.info(" [Kakao Service] Refresh Token ------> {}", kakaoTokenResponseDto.getRefreshToken());
-        log.info(" [Kakao Service] Id Token ------> {}", kakaoTokenResponseDto.getIdToken());
-        log.info(" [Kakao Service] Scope ------> {}", kakaoTokenResponseDto.getScope());
+        Map<String, String> bodyParams = new HashMap<>();
+        bodyParams.put("grant_type", "authorization_code");
+        bodyParams.put("client_id", clientId);
+        bodyParams.put("code", code);
 
-        return kakaoTokenResponseDto.getAccessToken();
+        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(bodyParams, headers);
+
+        ResponseEntity<KakaoTokenResponseDto> response = restTemplate.postForEntity(url, requestEntity, KakaoTokenResponseDto.class);
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            KakaoTokenResponseDto kakaoTokenResponseDto = response.getBody();
+            log.info(" [Kakao Service] Access Token ------> {}", kakaoTokenResponseDto.getAccessToken());
+            return kakaoTokenResponseDto.getAccessToken();
+        } else {
+            throw new RuntimeException("Failed to get Kakao access token");
+        }
     }
 
     @Transactional
     public KakaoUserInfoResponseDto getUserInfo(String accessToken) {
+        String url = KAUTH_USER_URL_HOST + "/v2/user/me";
 
-        KakaoUserInfoResponseDto userInfo = WebClient.create(KAUTH_USER_URL_HOST)
-                .get()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("https")
-                        .path("/v2/user/me")
-                        .build(true))
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
-                .header(HttpHeaders.CONTENT_TYPE, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString())
-                .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("Invalid Parameter")))
-                .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new RuntimeException("Internal Server Error")))
-                .bodyToMono(KakaoUserInfoResponseDto.class)
-                .block();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        headers.set("Content-Type", "application/x-www-form-urlencoded");
 
-        log.info("[ Kakao Service ] Auth ID ---> {} ", userInfo.getId());
-        log.info("[ Kakao Service ] NickName ---> {} ", userInfo.getKakaoAccount().getProfile().getNickName());
-        log.info("[ Kakao Service ] ProfileImageUrl ---> {} ", userInfo.getKakaoAccount().getProfile().getProfileImageUrl());
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
-        User user = new User();
-        user.setKakaoId(userInfo.getId());
-        user.setNickname(userInfo.getKakaoAccount().getProfile().getNickName());
-        user.setProfileImageUrl(userInfo.getKakaoAccount().getProfile().getProfileImageUrl());
+        ResponseEntity<KakaoUserInfoResponseDto> response = restTemplate.postForEntity(url, requestEntity, KakaoUserInfoResponseDto.class);
 
-        userRepository.save(user);
+        if (response.getStatusCode().is2xxSuccessful()) {
+            KakaoUserInfoResponseDto userInfo = response.getBody();
 
-        return userInfo;
+            log.info("[ Kakao Service ] Kakao Email ---> {} ", userInfo.getKakaoAccount().getEmail());
+            log.info("[ Kakao Service ] NickName ---> {} ", userInfo.getKakaoAccount().getProfile().getNickName());
+            log.info("[ Kakao Service ] ProfileImageUrl ---> {} ", userInfo.getKakaoAccount().getProfile().getProfileImageUrl());
+
+            // Check if user already exists in DB, otherwise create new one
+            User user = userRepository.findByKakaoEmail(userInfo.getKakaoAccount().getEmail()).orElseGet(() -> {
+                User newUser = new User();
+                newUser.setKakaoEmail(userInfo.getKakaoAccount().getEmail());
+                newUser.setNickname(userInfo.getKakaoAccount().getProfile().getNickName());
+                newUser.setProfileImageUrl(userInfo.getKakaoAccount().getProfile().getProfileImageUrl());
+                userRepository.save(newUser);
+                return newUser;
+            });
+
+            return userInfo;
+        } else {
+            throw new RuntimeException("Failed to get Kakao user info");
+        }
     }
 
     // 로그아웃
     @Transactional
     public void logoutFromKakao(String accessToken) {
-        WebClient.create(KAUTH_USER_URL_HOST)
-                .post()
-                .uri("/v1/user/logout")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
-                .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("Invalid Parameter")))
-                .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new RuntimeException("Internal Server Error")))
-                .bodyToMono(Void.class)
-                .block();
+        String url = KAUTH_USER_URL_HOST + "/v1/user/logout";
 
-        log.info("[Kakao Service] User logged out from Kakao successfully.");
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+        ResponseEntity<Void> response = restTemplate.postForEntity(url, requestEntity, Void.class);
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            log.info("[Kakao Service] User logged out from Kakao successfully.");
+        } else {
+            throw new RuntimeException("Failed to logout from Kakao");
+        }
     }
 
     // 회원 탈퇴
     @Transactional
     public void unlinkKakaoAccount(String accessToken) {
-        WebClient.create(KAUTH_USER_URL_HOST)
-                .post()
-                .uri("/v1/user/unlink")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
-                .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("Invalid Parameter")))
-                .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new RuntimeException("Internal Server Error")))
-                .bodyToMono(Void.class)
-                .block();
+        String url = KAUTH_USER_URL_HOST + "/v1/user/unlink";
 
-        log.info("[Kakao Service] User account unlinked from Kakao successfully.");
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+        ResponseEntity<Void> response = restTemplate.postForEntity(url, requestEntity, Void.class);
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            log.info("[Kakao Service] User account unlinked from Kakao successfully.");
+        } else {
+            throw new RuntimeException("Failed to unlink Kakao account");
+        }
     }
 }
