@@ -38,5 +38,4 @@ public class AirInfoDTO {
     private String o3Flag; // 오존 플래그
     private String so2Flag; // 아황산가스 플래그
     private String dataTime; // 측정일
-
 }

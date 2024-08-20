@@ -1,7 +1,11 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.2.9-SNAPSHOT'
+	id 'org.springframework.boot' version '3.3.2'
 	id 'io.spring.dependency-management' version '1.1.6'
+}
+
+ext {
+	springAiVersion = "1.0.0-M1"
 }
 
 group = 'com.example'
@@ -21,11 +25,16 @@ configurations {
 
 repositories {
 	mavenCentral()
+	maven { url 'https://repo.spring.io/milestone' }
 	maven { url 'https://repo.spring.io/snapshot' }
 }
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	// Replace the following with the starter dependencies of specific modules you wish to use
+//	implementation 'org.springframework.ai:spring-ai-openai'
+	implementation platform("org.springframework.ai:spring-ai-bom:1.0.0-M1")
+	implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -56,6 +65,12 @@ dependencies {
 	//Redis Config
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.ai:spring-ai-bom:$springAiVersion"
+	}
 }
 
 

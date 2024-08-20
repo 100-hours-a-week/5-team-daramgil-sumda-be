@@ -30,6 +30,7 @@ public class AirInfoController {
     public ResponseEntity<AirInfoDTO> getLatestAirInfoData1(@RequestParam("stationName") String stationName) {
         try {
             AirInfoDTO dto = airInfoService.getLatestAirQualityData(stationName);
+            System.out.println(dto);
             return ResponseEntity.ok(dto);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -73,9 +74,6 @@ public class AirInfoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
-
-
-
 
 
     // 측정소명으로 가장 최근 대기오염 정보 조회 (즐겨찾기)
