@@ -22,7 +22,7 @@ public class CommunityController {
     private final CommunityService communityService;
 
     // 게시글 목록 불러오기
-    @GetMapping("/get-posts")
+    @GetMapping("/")
     public ResponseEntity<?> getAllPosts() {
         try {
             List<CommunityDTO> posts = communityService.getAllPosts();
@@ -33,7 +33,7 @@ public class CommunityController {
     }
 
     // 게시글 작성(이미지 필수)
-    @PostMapping("/create-post")
+    @PostMapping("/")
     public ResponseEntity<?> createPost(@RequestParam("userId") long userId,
                                         @RequestParam("address") String address,
                                         @RequestParam(value = "image")MultipartFile imageFile) {
@@ -61,7 +61,7 @@ public class CommunityController {
     }
 
     // 게시글 삭제
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<?> deletePost(@PathVariable("id") long communityId) {
         try {
             communityService.deletePost(communityId);
@@ -74,7 +74,7 @@ public class CommunityController {
     }
 
     // 게시글 좋아요
-    @PostMapping("/post/{id}/like")
+    @PostMapping("/{id}/like")
     public ResponseEntity<?> likePost(@PathVariable("id") long communityId) {
         try {
             communityService.likePost(communityId);
