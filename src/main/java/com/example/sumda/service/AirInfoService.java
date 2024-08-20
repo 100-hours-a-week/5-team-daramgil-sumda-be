@@ -1,13 +1,13 @@
 package com.example.sumda.service;
 
 import com.example.sumda.DTO.AirInfoDTO;
+import com.example.sumda.constans.AirQualityConstants;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.data.redis.core.RedisTemplate;
@@ -24,20 +24,21 @@ import java.util.List;
 
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
 public class AirInfoService {
     @Value("${api.service.key}")
     private String serviceKey;
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final ChatClient chatClient;
 
     // URL 구성 요소
-    private final String BASE_URL = "http://apis.data.go.kr/B552584/ArpltnInforInqireSvc";
-    private final String apiUri = "/getMsrstnAcctoRltmMesureDnsty"; // 측정소별 실시간 측정정보 조회
-    private final String dataTerm = "&dataTerm=DAILY"; // 필수 - 요청 데이터기간(1일: DAILY, 1개월: MONTH, 3개월: 3MONTH)
-    private final String defaultQueryParam = "&returnType=json"; // JSON 형식으로 반환
-    private final String ver = "&ver=1.4";
+    private  String BASE_URL = "http://apis.data.go.kr/B552584/ArpltnInforInqireSvc";
+    private String apiUri = "/getMsrstnAcctoRltmMesureDnsty"; // 측정소별 실시간 측정정보 조회
+    private  String dataTerm = "&dataTerm=DAILY"; // 필수 - 요청 데이터기간(1일: DAILY, 1개월: MONTH, 3개월: 3MONTH)
+    private  String defaultQueryParam = "&returnType=json"; // JSON 형식으로 반환
+    private  String ver = "&ver=1.4";
 
 
     // 측정소별 실시간 측정정보 - 대기질 정보
@@ -63,6 +64,15 @@ public class AirInfoService {
         // Calculate duration
         long duration = endTime - startTime;
         System.out.println("Duration: " + duration + "ms");
+
+
+        String response = chatClient.prompt()
+                .system(sp -> sp.param("text", AirQualityConstants.CUTE_RESPONSE_PROMPT))
+                .user(airInfoDTO.toString())
+                .call()
+                .content();
+        System.out.println("response: " + response);
+
         return airInfoDTO;
     }
 
