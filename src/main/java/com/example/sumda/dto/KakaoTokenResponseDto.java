@@ -1,4 +1,4 @@
-package com.example.sumda.dto;
+package com.example.sumda.DTO;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

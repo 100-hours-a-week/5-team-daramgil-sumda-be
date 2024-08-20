@@ -1,8 +1,7 @@
 package com.example.sumda.service;
 
 import com.example.sumda.DTO.KakaoUserInfoResponseDto;
-import com.example.sumda.dto.KakaoTokenResponseDto;
-import com.example.sumda.dto.KakaoUserInfoResponseDto;
+import com.example.sumda.DTO.KakaoTokenResponseDto;
 import com.example.sumda.entity.User;
 import com.example.sumda.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -16,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -52,7 +52,6 @@ public class KakaoService {
 
         if (response.getStatusCode().is2xxSuccessful()) {
             KakaoTokenResponseDto kakaoTokenResponseDto = response.getBody();
-            log.info(" [Kakao Service] Access Token ------> {}", kakaoTokenResponseDto.getAccessToken());
             return kakaoTokenResponseDto.getAccessToken();
         } else {
             throw new RuntimeException("Failed to get Kakao access token");
@@ -69,27 +68,39 @@ public class KakaoService {
 
         HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
+        // API 요청을 통해 사용자 정보 가져오기
         ResponseEntity<KakaoUserInfoResponseDto> response = restTemplate.postForEntity(url, requestEntity, KakaoUserInfoResponseDto.class);
 
         if (response.getStatusCode().is2xxSuccessful()) {
             KakaoUserInfoResponseDto userInfo = response.getBody();
 
-            log.info("[ Kakao Service ] Kakao Email ---> {} ", userInfo.getKakaoAccount().getEmail());
-            log.info("[ Kakao Service ] NickName ---> {} ", userInfo.getKakaoAccount().getProfile().getNickName());
-            log.info("[ Kakao Service ] ProfileImageUrl ---> {} ", userInfo.getKakaoAccount().getProfile().getProfileImageUrl());
+            log.info("[ Kakao Service ] Kakao Email ---> {}", userInfo.getKakaoAccount().getEmail());
+            log.info("[ Kakao Service ] NickName ---> {}", userInfo.getKakaoAccount().getProfile().getNickName());
+            log.info("[ Kakao Service ] ProfileImageUrl ---> {}", userInfo.getKakaoAccount().getProfile().getProfileImageUrl());
 
-            // Check if user already exists in DB, otherwise create new one
-            User user = userRepository.findByKakaoEmail(userInfo.getKakaoAccount().getEmail()).orElseGet(() -> {
+            // Step 2: Check if user already exists in the DB
+            Optional<User> existingUser = userRepository.findByKakaoEmail(userInfo.getKakaoAccount().getEmail());
+
+            if (existingUser.isPresent()) {
+                // Update existing user details if necessary
+                User user = existingUser.get();
+                user.setNickname(userInfo.getKakaoAccount().getProfile().getNickName());
+                user.setProfileImageUrl(userInfo.getKakaoAccount().getProfile().getProfileImageUrl());
+                userRepository.save(user);
+            } else {
+                // Step 3: Register new user if not found in the DB
                 User newUser = new User();
                 newUser.setKakaoEmail(userInfo.getKakaoAccount().getEmail());
                 newUser.setNickname(userInfo.getKakaoAccount().getProfile().getNickName());
                 newUser.setProfileImageUrl(userInfo.getKakaoAccount().getProfile().getProfileImageUrl());
                 userRepository.save(newUser);
-                return newUser;
-            });
+            }
 
+            // Return user info DTO
             return userInfo;
+
         } else {
+            // Handle the case where the user info request fails
             throw new RuntimeException("Failed to get Kakao user info");
         }
     }
@@ -104,7 +115,7 @@ public class KakaoService {
 
         HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
-        ResponseEntity<Void> response = restTemplate.postForEntity(url, requestEntity, Void.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
 
         if (response.getStatusCode().is2xxSuccessful()) {
             log.info("[Kakao Service] User logged out from Kakao successfully.");
