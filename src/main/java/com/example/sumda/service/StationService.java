@@ -1,23 +1,21 @@
 package com.example.sumda.service;
 
-import com.example.sumda.entity.Station;
-import com.example.sumda.repository.station.StationRepository;
+import com.example.sumda.entity.AirQualityStations;
+import com.example.sumda.repository.AirQualityStationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class StationService {
-    private final StationRepository stationRepository;
+    private final AirQualityStationRepository airQualityStationRepository;
 
-    public Slice<Station> getStationContains(String stationName, int page, int size) {
-        Pageable pageable = PageRequest.of(page,size);
-        return stationRepository.findByStationNameContaining(stationName,pageable);
-    }
+//    public Slice<AirQualityStations> getStationContains(String stationName, int page, int size) {
+//        Pageable pageable = PageRequest.of(page,size);
+//        return airQualityStationRepository.findByStationNameContaining(stationName,pageable);
+//    }
 
 }

@@ -2,8 +2,11 @@ package com.example.sumda.service;
 
 import com.example.sumda.constans.AirQualityConstants;
 import com.example.sumda.dto.AirInfoReviewDto;
+import com.example.sumda.dto.AirQualityDto;
+import com.example.sumda.entity.AirQualityStations;
 import com.example.sumda.exception.CustomException;
 import com.example.sumda.exception.ErrorCode;
+import com.example.sumda.repository.AirQualityStationRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -25,6 +28,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -36,6 +40,7 @@ public class AirInfoService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final ChatClient chatClient;
+    private final AirQualityStationRepository airQualityStationRepository;
 
     // URL 구성 요소
     private String BASE_URL = "http://apis.data.go.kr/B552584/ArpltnInforInqireSvc";
@@ -177,8 +182,13 @@ public class AirInfoService {
     }
 
     // 시간별 대기질 정보 전달
-    public List<AirInfoReviewDto> getTimeAirQualityData(String stationName) throws Exception {
+    public List<AirInfoReviewDto> getTimeAirQualityData(long id) throws Exception {
         HttpClient client = HttpClient.newHttpClient();
+
+        // 관측소 이름 가져오기
+        Optional<AirQualityStations> station = airQualityStationRepository.findById(id);
+        String stationName = station.map(AirQualityStations::getStationName)
+                .orElse(null); // 관측소가 없을 경우 null을 반환
 
         // 생성된 URL 가져오기
         String url = makeUrl(stationName);
@@ -200,7 +210,7 @@ public class AirInfoService {
             JsonNode rootNode = objectMapper.readTree(response.body());
             // "items" 배열만 추출
             JsonNode itemsNode = rootNode.path("response").path("body").path("items");
-            // itemsNode를 List<AirInfoDTO>로 변환
+            // itemsNode를 List<AirQualityDto>로 변환
             List<AirInfoReviewDto> airInfoList = objectMapper.convertValue(itemsNode, new TypeReference<List<AirInfoReviewDto>>() {
             });
 
