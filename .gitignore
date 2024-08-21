@@ -5,7 +5,7 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 src/main/resources/application_secret.yml
-src/main/resources/application.yml
+
 
 ### STS ###
 .apt_generated
@@ -46,7 +46,6 @@ out/
 **/src/main/generated/
 
 ### application.yml ###
-**/src/main/resources/application.yml
 
 ### application-my.yml ###
 out/
