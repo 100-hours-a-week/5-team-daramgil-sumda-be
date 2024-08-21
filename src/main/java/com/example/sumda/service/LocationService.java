@@ -42,4 +42,5 @@ public class LocationService {
             throw new CustomException(ErrorCode.LOCATION_ERROR);
         }
     }
+
 }
