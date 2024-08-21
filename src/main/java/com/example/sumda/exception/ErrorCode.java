@@ -8,6 +8,12 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ErrorCode {
 
+    // airInfo
+    AIR_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 위치의 대기 정보를 찾을 수 없습니다."),
+    INVALID_PARAMETER(HttpStatus.INTERNAL_SERVER_ERROR, "잘못된 url 요청입니다."),
+
+    // 위치 정보 오류
+    LOCATION_ERROR(HttpStatus.BAD_REQUEST, "위치 정보가 잘못되었습니다"),
 
     // 서버 오류
     SEVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,  "서버 오류");

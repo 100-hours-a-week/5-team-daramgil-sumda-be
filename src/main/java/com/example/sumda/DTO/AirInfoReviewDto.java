@@ -1,4 +1,4 @@
-package com.example.sumda.DTO;
+package com.example.sumda.dto;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -6,7 +6,7 @@ import lombok.ToString;
 
 @Getter @Setter
 @ToString
-public class AirInfoDTO {
+public class AirInfoReviewDto {
     private String status;
     private String message;
     private String khaiGrade; // 통합대기환경 지수
@@ -38,4 +38,6 @@ public class AirInfoDTO {
     private String o3Flag; // 오존 플래그
     private String so2Flag; // 아황산가스 플래그
     private String dataTime; // 측정일
+
+    private String oneLineReview;
 }
