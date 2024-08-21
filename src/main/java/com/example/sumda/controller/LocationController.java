@@ -19,8 +19,14 @@ public class LocationController {
 
     private final LocationService locationService;
 
-    @GetMapping
+    @GetMapping("/convert")
     public ResponseEntity<?> findNearestLocations(@RequestParam Double latitude, @RequestParam Double longitude) {
+        System.out.println("latitude: " + latitude + ", longitude: " + longitude);
         return ResponseUtils.createResponse(HttpStatus.OK,"가장 가까운 위치를 찾았습니다.", locationService.findNearestLocations(latitude, longitude));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> findSearchLocations(@RequestParam String query) {
+        return ResponseUtils.createResponse(HttpStatus.OK,"검색한 위치를 찾았습니다.", locationService.findSearchLocations(query).getContent());
     }
 }
