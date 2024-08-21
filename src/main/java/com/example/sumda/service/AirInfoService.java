@@ -219,4 +219,18 @@ public class AirInfoService {
             throw new RuntimeException("Failed to get data from API: " + response.statusCode());
         }
     }
+
+    // 측정소별 실시간 측정정보 - 대기질 정보
+    public AirInfoReviewDto getNowAirQualityData(long id) {
+        // 관측소 이름 가져오기
+        Optional<AirQualityStations> station = airQualityStationRepository.findById(id);
+        String stationName = station.map(AirQualityStations::getStationName)
+                .orElse(null); // 관측소가 없을 경우 null을 반환
+
+        if (stationName == null) {
+            throw new CustomException(ErrorCode.AIR_INFO_NOT_FOUND);
+        }
+
+        return fetchFromPublicAPi(stationName);
+    }
 }
