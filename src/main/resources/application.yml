@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: sumda
+  profiles:
+    active: local
+    include: my
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4o-mini
+          temperature: 0.7
+
+  datasource:
+    url: jdbc:mysql://${DB_URL}:3306/sumda
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none  # ?? ????? ??, ??????? ??? ??
+    show-sql: true
+    database-platform: org.hibernate.dialect.MySQLDialect
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client_id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID:default_client_id}
+            provider: kakao
+            client-authentication-method: POST
+            authorization-grant-type: authorization_code
+            redirect-uri: "http://localhost:3000/auth"
+            scope: profile_nickname, profile_image, account_email
+            client-name: Kakao
+
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+
+# 대기정보 조회 에스핀 개인키
+api:
+  service:
+    key: ${AIR_PUBLIC_API_KEY}
+
+
