@@ -1,8 +1,10 @@
 package com.example.sumda.controller;
 
 import com.example.sumda.dto.AirInfoReviewDto;
+import com.example.sumda.dto.airinfo.response.AirPollutionImageResponseDto;
 import com.example.sumda.dto.airinfo.response.AirQualityDto;
 import com.example.sumda.service.AirInfoService;
+import com.example.sumda.service.AirPollutionImageService;
 import com.example.sumda.utils.ResponseUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,6 +24,8 @@ import java.util.stream.Collectors;
 public class AirInfoController {
 
     private final AirInfoService airInfoService;
+    //TODO: AirInfoService에 AirPollutionImageService 추가
+    private final AirPollutionImageService airPollutionImageService;
 
     // 주소 id 값으로 가장 최근 대기오염 정보 조회
     @GetMapping("/current")
@@ -47,7 +51,7 @@ public class AirInfoController {
         airQualityDto.setSo2Value(dto.getSo2Value());
 
         if (airQualityDto != null) {
-            return ResponseUtils.createResponse(HttpStatus.CREATED, "현재 대기질 정보 조회 완료", airQualityDto);
+            return ResponseUtils.createResponse(HttpStatus.OK, "현재 대기질 정보 조회 완료", airQualityDto);
         } else {
             return ResponseUtils.createResponse(HttpStatus.BAD_REQUEST, "데이터가 없습니다.");
         }
@@ -84,12 +88,28 @@ public class AirInfoController {
             }).collect(Collectors.toList());
 
             if (!airQualityDtoList.isEmpty()) {
-                return ResponseUtils.createResponse(HttpStatus.CREATED, "시간대별 대기질 정보 조회 완료", airQualityDtoList);
+                return ResponseUtils.createResponse(HttpStatus.OK, "시간대별 대기질 정보 조회 완료", airQualityDtoList);
             } else {
                 return ResponseUtils.createResponse(HttpStatus.BAD_REQUEST, "데이터가 없습니다.");
             }
         } catch (Exception e) {
             return ResponseUtils.createResponse(HttpStatus.INTERNAL_SERVER_ERROR, "시간대별 대기질 정보 조회 실패");
+        }
+    }
+
+    // 대기질 예측 이미지 조회
+    @GetMapping("/image")
+    public ResponseEntity<?> getAirPollutionImages(){
+        try {
+            AirPollutionImageResponseDto airPollutionImageDto = airPollutionImageService.fetchFromPublicApi();
+            if (airPollutionImageDto != null) {
+                return ResponseUtils.createResponse(HttpStatus.OK, "대기질 예측 이미지 조회 완료", airPollutionImageDto);
+            } else {
+                return ResponseUtils.createResponse(HttpStatus.BAD_REQUEST, "데이터가 없습니다.");
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
