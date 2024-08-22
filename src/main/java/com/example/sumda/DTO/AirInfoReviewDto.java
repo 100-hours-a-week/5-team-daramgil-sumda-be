@@ -7,8 +7,7 @@ import lombok.ToString;
 @Getter @Setter
 @ToString
 public class AirInfoReviewDto {
-    private String status;
-    private String message;
+
     private String khaiGrade; // 통합대기환경 지수
     private String khaiValue; // 통합대기환경 수치
     private String pm10Grade; // 미세먼지 지수
