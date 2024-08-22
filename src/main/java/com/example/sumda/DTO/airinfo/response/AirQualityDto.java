@@ -1,11 +1,9 @@
-package com.example.sumda.dto;
+package com.example.sumda.dto.airinfo.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor

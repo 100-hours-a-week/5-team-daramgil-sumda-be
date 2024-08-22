@@ -1,6 +1,6 @@
 package com.example.sumda.controller;
 
-import com.example.sumda.DTO.InquiryRequestDTO;
+import com.example.sumda.dto.inquiry.request.InquiryRequestDto;
 import com.example.sumda.service.InquiryService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +21,7 @@ public class InquiryController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createInquiry(@Valid @RequestBody InquiryRequestDTO inquiryRequestDTO, BindingResult bindingResult) {
+    public ResponseEntity<?> createInquiry(@Valid @RequestBody InquiryRequestDto inquiryRequestDTO, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             StringBuilder helperText = new StringBuilder("제목, 내용, 이메일을 입력해주세요.");
             bindingResult.getFieldErrors().forEach(error -> {

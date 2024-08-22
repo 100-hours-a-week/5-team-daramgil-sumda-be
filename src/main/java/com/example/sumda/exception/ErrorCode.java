@@ -7,6 +7,9 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum ErrorCode {
+    // official
+    OFFICIAL_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 공지를 찾을 수 없습니다."),
+
     // inquiry
     INQUIRY_NOT_FOUND(HttpStatus.NOT_FOUND,"입력 값이 잘못 되었습니다"),
 

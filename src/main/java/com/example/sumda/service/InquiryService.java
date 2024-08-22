@@ -1,6 +1,6 @@
 package com.example.sumda.service;
 
-import com.example.sumda.DTO.InquiryRequestDTO;
+import com.example.sumda.dto.inquiry.request.InquiryRequestDto;
 import com.example.sumda.entity.Inquiry;
 import com.example.sumda.repository.InquiryRepository;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ public class InquiryService {
         this.inquiryRepository = inquiryRepository;
     }
 
-    public void createInquiry(InquiryRequestDTO inquiryRequestDTO) {
+    public void createInquiry(InquiryRequestDto inquiryRequestDTO) {
         // DTO에서 엔티티로 변환
         Inquiry inquiry = inquiryRequestDTO.toEntity();
         // 저장

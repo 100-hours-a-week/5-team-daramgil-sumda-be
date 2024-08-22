@@ -1,10 +1,8 @@
 package com.example.sumda.controller;
 
 import com.example.sumda.dto.AirInfoReviewDto;
-import com.example.sumda.dto.AirQualityDto;
+import com.example.sumda.dto.airinfo.response.AirQualityDto;
 import com.example.sumda.service.AirInfoService;
-import com.example.sumda.service.NearbyMsrstnListService;
-import com.example.sumda.service.TMStdrCrdntService;
 import com.example.sumda.utils.ResponseUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,32 +22,29 @@ import java.util.stream.Collectors;
 public class AirInfoController {
 
     private final AirInfoService airInfoService;
-    private final TMStdrCrdntService tmStdrCrdntService;
-    private final NearbyMsrstnListService nearbyMsrstnListService;
 
     // 주소 id 값으로 가장 최근 대기오염 정보 조회
     @GetMapping("/current")
-    public ResponseEntity<?> getNowAirInfoData(@RequestParam("id") long id){
+    public ResponseEntity<?> getNowAirInfoData(@RequestParam("id") Long id) {
 
         AirInfoReviewDto dto = airInfoService.getNowAirQualityData(id);
-        System.out.println(dto);
 
-            AirQualityDto airQualityDto = new AirQualityDto();
-            airQualityDto.setDataTime(dto.getDataTime()); // String 타입으로 변경된 dateTime 설정
-            airQualityDto.setKhaiGrade(dto.getKhaiGrade());
-            airQualityDto.setKhaiValue(dto.getKhaiValue());
-            airQualityDto.setPm10Grade(dto.getPm10Grade());
-            airQualityDto.setPm10Value(dto.getPm10Value());
-            airQualityDto.setPm25Grade(dto.getPm25Grade());
-            airQualityDto.setPm25Value(dto.getPm25Value());
-            airQualityDto.setO3Grade(dto.getO3Grade());
-            airQualityDto.setO3Value(dto.getO3Value());
-            airQualityDto.setNo2Grade(dto.getNo2Grade());
-            airQualityDto.setNo2Value(dto.getNo2Value());
-            airQualityDto.setCoGrade(dto.getCoGrade());
-            airQualityDto.setCoValue(dto.getCoValue());
-            airQualityDto.setSo2Grade(dto.getSo2Grade());
-            airQualityDto.setSo2Value(dto.getSo2Value());
+        AirQualityDto airQualityDto = new AirQualityDto();
+        airQualityDto.setDataTime(dto.getDataTime()); // String 타입으로 변경된 dateTime 설정
+        airQualityDto.setKhaiGrade(dto.getKhaiGrade());
+        airQualityDto.setKhaiValue(dto.getKhaiValue());
+        airQualityDto.setPm10Grade(dto.getPm10Grade());
+        airQualityDto.setPm10Value(dto.getPm10Value());
+        airQualityDto.setPm25Grade(dto.getPm25Grade());
+        airQualityDto.setPm25Value(dto.getPm25Value());
+        airQualityDto.setO3Grade(dto.getO3Grade());
+        airQualityDto.setO3Value(dto.getO3Value());
+        airQualityDto.setNo2Grade(dto.getNo2Grade());
+        airQualityDto.setNo2Value(dto.getNo2Value());
+        airQualityDto.setCoGrade(dto.getCoGrade());
+        airQualityDto.setCoValue(dto.getCoValue());
+        airQualityDto.setSo2Grade(dto.getSo2Grade());
+        airQualityDto.setSo2Value(dto.getSo2Value());
 
         if (airQualityDto != null) {
             return ResponseUtils.createResponse(HttpStatus.CREATED, "현재 대기질 정보 조회 완료", airQualityDto);
@@ -62,7 +57,7 @@ public class AirInfoController {
     // 측정소명으로 시간별 대기질 정보 조회 (즐겨찾기)
     @Deprecated
     @GetMapping("/time")
-    public ResponseEntity<?> getTimeAirInfoData(@RequestParam("id") long id) {
+    public ResponseEntity<?> getTimeAirInfoData(@RequestParam("id") Long id) {
         try {
 
             List<AirInfoReviewDto> airInfoList = airInfoService.getTimeAirQualityData(id);

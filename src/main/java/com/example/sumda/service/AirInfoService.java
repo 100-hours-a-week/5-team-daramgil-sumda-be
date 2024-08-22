@@ -2,7 +2,6 @@ package com.example.sumda.service;
 
 import com.example.sumda.constans.AirQualityConstants;
 import com.example.sumda.dto.AirInfoReviewDto;
-import com.example.sumda.dto.AirQualityDto;
 import com.example.sumda.entity.AirQualityStations;
 import com.example.sumda.exception.CustomException;
 import com.example.sumda.exception.ErrorCode;
@@ -225,7 +224,7 @@ public class AirInfoService {
         // 관측소 이름 가져오기
         Optional<AirQualityStations> station = airQualityStationRepository.findById(id);
         String stationName = station.map(AirQualityStations::getStationName)
-                .orElse(null); // 관측소가 없을 경우 null을 반환
+                .orElseThrow(null); // 관측소가 없을 경우 null을 반환
 
         if (stationName == null) {
             throw new CustomException(ErrorCode.AIR_INFO_NOT_FOUND);

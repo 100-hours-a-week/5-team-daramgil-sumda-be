@@ -1,4 +1,4 @@
-package com.example.sumda.DTO;
+package com.example.sumda.dto;
 
 import lombok.Getter;
 import lombok.Setter;

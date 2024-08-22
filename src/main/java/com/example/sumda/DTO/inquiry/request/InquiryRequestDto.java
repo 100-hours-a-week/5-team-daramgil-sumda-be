@@ -1,4 +1,4 @@
-package com.example.sumda.DTO;
+package com.example.sumda.dto.inquiry.request;
 
 import com.example.sumda.entity.Inquiry;
 import jakarta.validation.constraints.Email;
@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDateTime;
 
-public class InquiryRequestDTO {
+public class InquiryRequestDto {
 
     @NotBlank(message = "제목을 입력해주세요")
     private String title;
