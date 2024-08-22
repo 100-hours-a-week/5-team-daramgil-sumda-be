@@ -2,7 +2,10 @@ package com.example.sumda.controller;
 
 import com.example.sumda.dto.inquiry.request.InquiryRequestDto;
 import com.example.sumda.service.InquiryService;
+import com.example.sumda.utils.ResponseUtils;
 import jakarta.validation.Valid;
+import org.apache.tomcat.util.http.ResponseUtil;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,20 +44,11 @@ public class InquiryController {
                 }
             });
 
-            return ResponseEntity.badRequest().body(new ErrorResponse(helperText.toString(), "VALIDATION_ERROR"));
+            return ResponseUtils.createResponse(HttpStatus.BAD_REQUEST, helperText.toString());
         }
 
         inquiryService.createInquiry(inquiryRequestDTO);
-        return ResponseEntity.ok().build();
+        return ResponseUtils.createResponse(HttpStatus.CREATED, "문의가 성공적으로 등록되었습니다.");
     }
 
-    static class ErrorResponse {
-        private String message;
-        private String code;
-
-        public ErrorResponse(String message, String code) {
-            this.message = message;
-            this.code = code;
-        }
-    }
 }
