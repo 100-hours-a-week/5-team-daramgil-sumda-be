@@ -32,17 +32,17 @@ public class LocationService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public Slice<DistrictResponseDto> findSearchLocations(String district) {
-        try {
-            Pageable pageable = PageRequest.of(0, 10);
-            Slice<Locations> locations = locationsRepository.findByLocationNameContaining(district, pageable);
-
-            return locations.map(location -> DistrictResponseDto.of(location.getId(), location.getDistrict()));
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.LOCATION_ERROR);
-        }
-    }
+//    @Transactional(readOnly = true)
+//    public Slice<DistrictResponseDto> findSearchLocations(String district) {
+//        try {
+//            Pageable pageable = PageRequest.of(0, 10);
+//            Slice<Locations> locations = locationsRepository.findByLocationNameContaining(district, pageable);
+//
+//            return locations.map(location -> DistrictResponseDto.of(location.getId(), location.getDistrict()));
+//        } catch (Exception e) {
+//            throw new CustomException(ErrorCode.LOCATION_ERROR);
+//        }
+//    }
 
     @Transactional(readOnly = true)
     public Slice<DistrictResponseDto> findSearchLocations(String district) {
