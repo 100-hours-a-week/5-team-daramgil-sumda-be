@@ -24,15 +24,40 @@ public class AirInfoController {
     private final AirInfoService airInfoService;
     private final TMStdrCrdntService tmStdrCrdntService;
     private final NearbyMsrstnListService nearbyMsrstnListService;
+    // 주소 id 값으로 가장 최근 대기오염 정보 조회
+    @GetMapping("/current")
+    public ResponseEntity<?> getNowAirInfoData(@RequestParam("id") long id){
 
-    // 측정소명으로 가장 최근 대기오염 정보 조회 (즐겨찾기)
-    @GetMapping("/latest/favorite-location")
-    public ResponseEntity<AirInfoReviewDto> getLatestAirInfoData1(@RequestParam("sensitive_group") String sensitiveGroup,
-                                                                  @RequestParam("umd_name") String umdName){
-            AirInfoReviewDto dto = airInfoService.getLatestAirQualityData(umdName,sensitiveGroup);
+        try{
+
+            AirInfoReviewDto dto = airInfoService.getNowAirQualityData(id);
             System.out.println(dto);
-            return ResponseEntity.ok(dto);
 
+            AirQualityDto airQualityDto = new AirQualityDto();
+            airQualityDto.setDataTime(dto.getDataTime()); // String 타입으로 변경된 dateTime 설정
+            airQualityDto.setKhaiGrade(dto.getKhaiGrade());
+            airQualityDto.setKhaiValue(dto.getKhaiValue());
+            airQualityDto.setPm10Grade(dto.getPm10Grade());
+            airQualityDto.setPm10Value(dto.getPm10Value());
+            airQualityDto.setPm25Grade(dto.getPm25Grade());
+            airQualityDto.setPm25Value(dto.getPm25Value());
+            airQualityDto.setO3Grade(dto.getO3Grade());
+            airQualityDto.setO3Value(dto.getO3Value());
+            airQualityDto.setNo2Grade(dto.getNo2Grade());
+            airQualityDto.setNo2Value(dto.getNo2Value());
+            airQualityDto.setCoGrade(dto.getCoGrade());
+            airQualityDto.setCoValue(dto.getCoValue());
+            airQualityDto.setSo2Grade(dto.getSo2Grade());
+            airQualityDto.setSo2Value(dto.getSo2Value());
+
+            if (airQualityDto != null) {
+                return ResponseUtils.createResponse(HttpStatus.CREATED, "현재 대기질 정보 조회 완료", airQualityDto);
+            } else {
+                return ResponseUtils.createResponse(HttpStatus.BAD_REQUEST, "데이터가 없습니다.");
+            }
+        } catch (Exception e) {
+            return ResponseUtils.createResponse(HttpStatus.INTERNAL_SERVER_ERROR, "현재 대기질 정보 조회 실패");
+        }
     }
 
 //    @Deprecated
