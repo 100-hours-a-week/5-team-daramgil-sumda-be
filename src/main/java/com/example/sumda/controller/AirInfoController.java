@@ -31,8 +31,10 @@ public class AirInfoController {
     @GetMapping("/current")
     public ResponseEntity<?> getNowAirInfoData(@RequestParam("id") long id){
 
-        AirInfoReviewDto dto = airInfoService.getNowAirQualityData(id);
-        System.out.println(dto);
+        try{
+
+            AirInfoReviewDto dto = airInfoService.getNowAirQualityData(id);
+            System.out.println(dto);
 
             AirQualityDto airQualityDto = new AirQualityDto();
             airQualityDto.setDataTime(dto.getDataTime()); // String 타입으로 변경된 dateTime 설정
@@ -51,10 +53,13 @@ public class AirInfoController {
             airQualityDto.setSo2Grade(dto.getSo2Grade());
             airQualityDto.setSo2Value(dto.getSo2Value());
 
-        if (airQualityDto != null) {
-            return ResponseUtils.createResponse(HttpStatus.CREATED, "현재 대기질 정보 조회 완료", airQualityDto);
-        } else {
-            return ResponseUtils.createResponse(HttpStatus.BAD_REQUEST, "데이터가 없습니다.");
+            if (airQualityDto != null) {
+                return ResponseUtils.createResponse(HttpStatus.CREATED, "현재 대기질 정보 조회 완료", airQualityDto);
+            } else {
+                return ResponseUtils.createResponse(HttpStatus.BAD_REQUEST, "데이터가 없습니다.");
+            }
+        } catch (Exception e) {
+            return ResponseUtils.createResponse(HttpStatus.INTERNAL_SERVER_ERROR, "현재 대기질 정보 조회 실패");
         }
     }
 

@@ -32,7 +32,6 @@ public class LocationService {
         }
     }
 
-
     @Transactional(readOnly = true)
     public Slice<DistrictResponseDto> findSearchLocations(String district) {
         try {
