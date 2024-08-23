@@ -3,9 +3,11 @@ package com.example.sumda.service;
 import com.example.sumda.constans.AirQualityConstants;
 import com.example.sumda.dto.AirInfoReviewDto;
 import com.example.sumda.entity.AirQualityStations;
+import com.example.sumda.entity.Locations;
 import com.example.sumda.exception.CustomException;
 import com.example.sumda.exception.ErrorCode;
 import com.example.sumda.repository.AirQualityStationRepository;
+import com.example.sumda.repository.LocationRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -39,6 +41,7 @@ public class AirInfoService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final ChatClient chatClient;
+    private final LocationRepository locationRepository;
     private final AirQualityStationRepository airQualityStationRepository;
 
     // URL 구성 요소
@@ -184,8 +187,14 @@ public class AirInfoService {
     public List<AirInfoReviewDto> getTimeAirQualityData(long id) throws Exception {
         HttpClient client = HttpClient.newHttpClient();
 
+        // 주소_id로 관측소_id 가져오기
+        Locations location = locationRepository.findById(id)
+                .orElseThrow(()->new CustomException(ErrorCode.LOCATION_ERROR));
+        Long stationId = location.getStation().getId();
+        System.out.println(stationId);
+
         // 관측소 이름 가져오기
-        Optional<AirQualityStations> station = airQualityStationRepository.findById(id);
+        Optional<AirQualityStations> station = airQualityStationRepository.findById(stationId);
         String stationName = station.map(AirQualityStations::getStationName)
                 .orElse(null); // 관측소가 없을 경우 null을 반환
 
@@ -221,10 +230,16 @@ public class AirInfoService {
 
     // 측정소별 실시간 측정정보 - 대기질 정보
     public AirInfoReviewDto getNowAirQualityData(long id) {
+        // 주소_id로 관측소_id 가져오기
+        Locations location = locationRepository.findById(id)
+                .orElseThrow(()->new CustomException(ErrorCode.LOCATION_ERROR));
+        Long stationId = location.getStation().getId();
+        System.out.println(stationId);
+
         // 관측소 이름 가져오기
-        Optional<AirQualityStations> station = airQualityStationRepository.findById(id);
+        Optional<AirQualityStations> station = airQualityStationRepository.findById(stationId);
         String stationName = station.map(AirQualityStations::getStationName)
-                .orElseThrow(null); // 관측소가 없을 경우 null을 반환
+                .orElse(null); // 관측소가 없을 경우 null을 반환
 
         if (stationName == null) {
             throw new CustomException(ErrorCode.AIR_INFO_NOT_FOUND);
