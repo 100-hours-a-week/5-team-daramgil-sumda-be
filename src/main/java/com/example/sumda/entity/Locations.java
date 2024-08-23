@@ -34,6 +34,9 @@ public class Locations {
     @Column(name = "ny")
     private int ny;
 
+    @Column(name = "code")
+    private int code;
+
     @ManyToOne
     @JoinColumn(name = "station_id", insertable = false, updatable = false)
     private AirQualityStations station;
