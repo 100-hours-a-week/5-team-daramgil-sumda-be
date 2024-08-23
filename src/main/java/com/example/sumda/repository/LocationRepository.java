@@ -24,4 +24,6 @@ public interface LocationRepository extends JpaRepository<Locations,Long> {
     @Query("SELECT l FROM Locations l where l.district like %:name%")
     Slice<Locations> findByLocationNameContaining(@Param("name") String name, Pageable pageable);
 
+    @Query("select l.code from Locations l where l.id = :id")
+    String findCodeById(@Param("id") Long id);
 }

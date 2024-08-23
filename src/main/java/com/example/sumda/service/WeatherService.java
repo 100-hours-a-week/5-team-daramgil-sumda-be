@@ -1,12 +1,16 @@
 package com.example.sumda.service;
 
+import com.example.sumda.dto.weather.response.CurrentWeatherResponseDto;
 import com.example.sumda.entity.Locations;
+import com.example.sumda.exception.CustomException;
+import com.example.sumda.exception.ErrorCode;
 import com.example.sumda.repository.LocationRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,17 +19,24 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class WeatherService {
 
     private final LocationRepository locationRepository;
-    private final RestTemplate restTemplate;
     private final JdbcTemplate jdbcTemplate; // JdbcTemplate 주입
 
     @Value("${api.service.weather.key}")
@@ -103,45 +114,31 @@ public class WeatherService {
         weatherDistrictCodeMap.put("제주특별자치도", JEJU_CODE);
     }
 
-    private String getWeatherCodeById(Long id) {
-        String sql = "SELECT code FROM location_code_mapping WHERE id = ?";
-        return jdbcTemplate.queryForObject(sql, new Object[]{id}, String.class);
-    }
-    public String getDaysWeatherByID(Long id) {
+    public CurrentWeatherResponseDto getDaysWeatherByID(Long id) {
         Locations location = getLocationById(id);
-        if (location == null) {
-            System.out.println("Location not found for ID: " + id);
-            return "Location not found";
-        }
 
         // 기존의 weatherDistrictCodeMap에서 코드를 가져오는 부분 (원래의 로직 유지)
         String district = location.getDistrict();
         String key = extractKeyFromDistrict(district);
         String weatherCode = weatherDistrictCodeMap.get(key);
-        if (weatherCode == null) {
-            System.out.println("Weather district code not found for key: " + key);
-            return "Weather district code not found";
-        }
 
         // 새로운 location_code_mapping 테이블에서 code 가져오기
-        String DweaherCode = getWeatherCodeById(id);
-        System.out.println(DweaherCode);
+        String dWeatherCode = location.getCode();
+        log.info("dWeatherCode: {}", dWeatherCode);
 
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
         String tmFc = determineForecastTime(today, now);
 
-        String landForecastUrl = String.format("%s?serviceKey=%s&pageNo=1&numOfRows=10&dataType=JSON&regId=%s&tmFc=%s",
-                midTermLandForecastUrl, apiKey, weatherCode, tmFc);
-        String temperatureUrl = String.format("%s?serviceKey=%s&pageNo=1&numOfRows=10&dataType=JSON&regId=%s&tmFc=%s",
-                midTermTemperatureUrl, apiKey, DweaherCode, tmFc);
+        String landForecastUrl = buildUrl(midTermLandForecastUrl,apiKey,weatherCode,tmFc);
+        String temperatureUrl = buildUrl(midTermTemperatureUrl,apiKey,dWeatherCode,tmFc);
 
         System.out.println(landForecastUrl);
         System.out.println(temperatureUrl);
 
         // API 요청 및 응답 출력
-        String landForecastResponse = restTemplate.getForObject(landForecastUrl, String.class);
-        String temperatureResponse = restTemplate.getForObject(temperatureUrl, String.class);
+        String landForecastResponse = sendRequest(landForecastUrl);
+        String temperatureResponse = sendRequest(temperatureUrl);
 
         System.out.println("Land Forecast API Response:");
         System.out.println(landForecastResponse);
@@ -155,63 +152,84 @@ public class WeatherService {
         JSONObject finalResult = new JSONObject();
         JSONArray daysArray = new JSONArray();
 
-        for (int i = 3; i <= 10; i++) {
-            JSONObject dayWeather = new JSONObject();
-            dayWeather.put("day", i);
+//        for (int i = 3; i <= 10; i++) {
+//            JSONObject dayWeather = new JSONObject();
+//            dayWeather.put("day", i);
+//
+//            if (i <= 7) {
+//                // AM/PM 데이터가 있는 경우
+//                String amKey = "wf" + i + "Am";
+//                String pmKey = "wf" + i + "Pm";
+//
+//                String weatherAm = landForecastJson.optString(amKey, "N/A");
+//                String weatherPm = landForecastJson.optString(pmKey, "N/A");
+//
+//                if ("N/A".equals(weatherAm)) {
+//                    System.out.println("Missing AM weather data for day " + i + " with key: " + amKey);
+//                }
+//                if ("N/A".equals(weatherPm)) {
+//                    System.out.println("Missing PM weather data for day " + i + " with key: " + pmKey);
+//                }
+//
+//                dayWeather.put("weatherAm", weatherAm);
+//                dayWeather.put("weatherPm", weatherPm);
+//            } else {
+//                // 8, 9, 10일은 AM/PM이 아닌 단일 값
+//                String weatherKey = "wf" + i;
+//                String weather = landForecastJson.optString(weatherKey, "N/A");
+//
+//                if ("N/A".equals(weather)) {
+//                    System.out.println("Missing weather data for day " + i + " with key: " + weatherKey);
+//                }
+//
+//                dayWeather.put("weather", weather);
+//            }
+//
+//            // 최저/최고 온도 처리
+//            String minKey = "taMin" + i;
+//            String maxKey = "taMax" + i;
+//
+//            int minTemperature = temperatureForecastJson.optInt(minKey, 0);
+//            int maxTemperature = temperatureForecastJson.optInt(maxKey, 0);
+//
+//            if (minTemperature == 0) {
+//                System.out.println("Missing Min Temperature data for day " + i + " with key: " + minKey);
+//            }
+//            if (maxTemperature == 0) {
+//                System.out.println("Missing Max Temperature data for day " + i + " with key: " + maxKey);
+//            }
+//
+//            dayWeather.put("minTemperature", minTemperature);
+//            dayWeather.put("maxTemperature", maxTemperature);
+//
+//            daysArray.put(dayWeather);
+//        }
+//
+//        finalResult.put("forecast", daysArray);
 
-            if (i <= 7) {
-                // AM/PM 데이터가 있는 경우
-                String amKey = "wf" + i + "Am";
-                String pmKey = "wf" + i + "Pm";
-
-                String weatherAm = landForecastJson.optString(amKey, "N/A");
-                String weatherPm = landForecastJson.optString(pmKey, "N/A");
-
-                if ("N/A".equals(weatherAm)) {
-                    System.out.println("Missing AM weather data for day " + i + " with key: " + amKey);
-                }
-                if ("N/A".equals(weatherPm)) {
-                    System.out.println("Missing PM weather data for day " + i + " with key: " + pmKey);
-                }
-
-                dayWeather.put("weatherAm", weatherAm);
-                dayWeather.put("weatherPm", weatherPm);
-            } else {
-                // 8, 9, 10일은 AM/PM이 아닌 단일 값
-                String weatherKey = "wf" + i;
-                String weather = landForecastJson.optString(weatherKey, "N/A");
-
-                if ("N/A".equals(weather)) {
-                    System.out.println("Missing weather data for day " + i + " with key: " + weatherKey);
-                }
-
-                dayWeather.put("weather", weather);
-            }
-
-            // 최저/최고 온도 처리
-            String minKey = "taMin" + i;
-            String maxKey = "taMax" + i;
-
-            int minTemperature = temperatureForecastJson.optInt(minKey, 0);
-            int maxTemperature = temperatureForecastJson.optInt(maxKey, 0);
-
-            if (minTemperature == 0) {
-                System.out.println("Missing Min Temperature data for day " + i + " with key: " + minKey);
-            }
-            if (maxTemperature == 0) {
-                System.out.println("Missing Max Temperature data for day " + i + " with key: " + maxKey);
-            }
-
-            dayWeather.put("minTemperature", minTemperature);
-            dayWeather.put("maxTemperature", maxTemperature);
-
-            daysArray.put(dayWeather);
-        }
-
-        finalResult.put("forecast", daysArray);
-
-        return finalResult.toString(4);
+        return null;
     }
+
+
+    private String sendRequest(String url) {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .GET()
+                .build();
+
+        try {
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                return response.body();
+            } else {
+                throw new RuntimeException("Failed to get data from API: " + response.statusCode());
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new CustomException(ErrorCode.SEVER_ERROR);
+        }
+    }
+
 
 
     private String determineForecastTime(LocalDate date, LocalTime time) {
@@ -229,8 +247,6 @@ public class WeatherService {
 
         return String.format("%s%02d00", date.format(DateTimeFormatter.ofPattern("yyyyMMdd")), time.getHour());
     }
-
-
 
 
     private String extractKeyFromDistrict(String district) {
@@ -252,258 +268,275 @@ public class WeatherService {
         return district; // 기본적으로 전체 주소를 반환
     }
 
-    public String getTimeWeatherByID(Long id) throws JsonProcessingException {
-        System.out.println("getTimeWeatherByID called with ID: " + id);
 
-        Locations location = getLocationById(id);
-        if (location == null) {
-            System.out.println("Location not found for ID: " + id);
-            return "Location not found";
-        }
-
-        System.out.println("Location found: " + location);
-
-        String apiUrl = buildTimeApiUrl(location);
-        System.out.println("API URL: " + apiUrl);
-
-        String apiResponse = restTemplate.getForObject(apiUrl, String.class);
-        System.out.println("API Response: " + apiResponse);
-
-        String result = processWeatherData(apiResponse, location);
-        System.out.println("Processed Weather Data: " + result);
-
-        return result;
-    }
-
-
-    public String getCurrentWeatherById(Long id) {
-        Locations location = getLocationById(id);
-        if (location == null) return "Location not found";
-
-        String apiUrl = buildCurrentApiUrl(location);
-        String apiResponse = restTemplate.getForObject(apiUrl, String.class);
-
-        return buildCurrentWeatherJson(apiResponse);
-    }
-
+//    public String getTimeWeatherByID(Long id) throws JsonProcessingException {
+//        System.out.println("getTimeWeatherByID called with ID: " + id);
+//
+//        Locations location = getLocationById(id);
+//        if (location == null) {
+//            System.out.println("Location not found for ID: " + id);
+//            return "Location not found";
+//        }
+//
+//        System.out.println("Location found: " + location);
+//
+//        String apiUrl = buildTimeApiUrl(location);
+//        System.out.println("API URL: " + apiUrl);
+//
+//        String apiResponse = restTemplate.getForObject(apiUrl, String.class);
+//        System.out.println("API Response: " + apiResponse);
+//
+//        String result = processWeatherData(apiResponse, location);
+//        System.out.println("Processed Weather Data: " + result);
+//
+//        return result;
+//    }
+//
+//
+//    public String getCurrentWeatherById(Long id) {
+//        Locations location = getLocationById(id);
+//        if (location == null) return "Location not found";
+//
+//        String apiUrl = buildCurrentApiUrl(location);
+//        String apiResponse = restTemplate.getForObject(apiUrl, String.class);
+//
+//        return buildCurrentWeatherJson(apiResponse);
+//    }
+//
     private Locations getLocationById(Long id) {
-        return locationRepository.findById(id).orElse(null);
+        return locationRepository.findById(id).orElseThrow(()->new CustomException(ErrorCode.LOCATION_ERROR));
     }
+//
+    // buildUrl 메서드
+    public String buildUrl(String baseUrl, String apiKey, String code, String tmFc) {
+        try {
+            String encodedApiKey = URLEncoder.encode(apiKey, StandardCharsets.UTF_8.toString());
+            String encodedCode = URLEncoder.encode(code, StandardCharsets.UTF_8.toString());
+            String encodedTmFc = URLEncoder.encode(tmFc, StandardCharsets.UTF_8.toString());
 
-    private String buildTimeApiUrl(Locations location) {
-        LocalDate today = LocalDate.now();
-        LocalTime now = LocalTime.now();
-        String selectedBaseTime = selectNearestBaseTime(now, getBaseTimes());
-        String date = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-
-        return String.format("%s?serviceKey=%s&pageNo=%d&numOfRows=%d&dataType=%s&base_date=%s&base_time=%s&nx=%d&ny=%d",
-                TIME_API_URL,
-                apiKey,
-                1,
-                1000,
-                "JSON",
-                date,
-                selectedBaseTime,
-                location.getNx(),
-                location.getNy());
-    }
-
-    private String buildCurrentApiUrl(Locations location) {
-        LocalDate today = LocalDate.now();
-        LocalTime now = LocalTime.now();
-        String baseTime = determineBaseTime(now);
-        String date = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-
-        return String.format("%s?serviceKey=%s&pageNo=%d&numOfRows=%d&dataType=%s&base_date=%s&base_time=%s&nx=%d&ny=%d",
-                CURRENT_API_URL,
-                apiKey,
-                1,
-                1000,
-                "JSON",
-                date,
-                baseTime,
-                location.getNx(),
-                location.getNy());
-    }
-
-    private String processWeatherData(String apiResponse, Locations location) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode root = mapper.readTree(apiResponse);
-        JsonNode items = root.path("response").path("body").path("items").path("item");
-
-        Map<String, JSONObject> informations = new HashMap<>();
-
-        if (items.isArray()) {
-            for (JsonNode item : items) {
-                String fcstDate = item.path("fcstDate").asText();
-                String fcstTime = item.path("fcstTime").asText();
-                String category = item.path("category").asText();
-                String fcstValue = item.path("fcstValue").asText();
-
-                String dateTimeKey = fcstDate + fcstTime;
-                JSONObject weatherData = informations.getOrDefault(dateTimeKey, new JSONObject());
-
-                switch (category) {
-                    case "SKY":
-                        weatherData.put("sky", getSkyCode().getOrDefault(Integer.parseInt(fcstValue), "알 수 없음"));
-                        break;
-                    case "PTY":
-                        weatherData.put("precipitation", getPtyCode().getOrDefault(Integer.parseInt(fcstValue), "알 수 없음"));
-                        break;
-                    case "REH":
-                        weatherData.put("humidity", fcstValue + "%");
-                        break;
-                    case "VEC":
-                        weatherData.put("windDirection", degToDir(Double.parseDouble(fcstValue), getDegCode()));
-                        break;
-                    case "WSD":
-                        weatherData.put("windSpeed", fcstValue + "m/s");
-                        break;
-                    // 필요한 다른 카테고리도 추가할 수 있음
-                }
-
-                informations.put(dateTimeKey, weatherData);
-            }
+            // URL을 생성합니다. 필요한 매개변수들을 붙입니다.
+            return String.format("%s?ServiceKey=%s&ergId=%s&tmFc=%s&dataType=json", baseUrl, encodedApiKey, encodedCode, encodedTmFc);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;  // 오류 발생 시 null 반환
         }
-
-        // 키(날짜와 시간)를 기준으로 정렬
-        List<String> sortedKeys = new ArrayList<>(informations.keySet());
-        Collections.sort(sortedKeys);
-
-        JSONArray jsonResultArray = new JSONArray();
-
-        for (String key : sortedKeys) {
-            JSONObject weatherData = informations.get(key);
-
-            String date = key.substring(0, 8);
-            String time = key.substring(8, 12);
-
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("date", date);
-            jsonObject.put("time", time);
-            jsonObject.put("weather", weatherData);
-
-            jsonResultArray.put(jsonObject);
-        }
-
-        JSONObject finalResult = new JSONObject();
-        finalResult.put("weatherData", jsonResultArray);
-
-        return finalResult.toString(4); // pretty print JSON with indentation
     }
-
-
-
-    private String formatWeatherOutput(Map<String, Map<String, String>> informations, Locations location) {
-        System.out.println("formatWeatherOutput called with informations: " + informations);
-        System.out.println("Location: " + location);
-
-        StringBuilder result = new StringBuilder();
-        Map<Integer, String> degCode = getDegCode();
-        Map<Integer, String> skyCode = getSkyCode();
-        Map<Integer, String> ptyCode = getPtyCode();
-        LocalDate today = LocalDate.now();
-
-        for (Map.Entry<String, Map<String, String>> entry : informations.entrySet()) {
-            String time = entry.getKey();
-            Map<String, String> values = entry.getValue();
-
-            System.out.println("Processing time: " + time + " with values: " + values);
-
-            result.append(String.format("%s년 %s월 %s일 %s시 %s분 (%d, %d) 지역의 날씨는 ",
-                    today.format(DateTimeFormatter.ofPattern("yyyy")),
-                    today.format(DateTimeFormatter.ofPattern("MM")),
-                    today.format(DateTimeFormatter.ofPattern("dd")),
-                    time.substring(0, 2),
-                    time.substring(2, 4),
-                    location.getNx(),
-                    location.getNy()));
-
-            if (values.containsKey("SKY")) {
-                result.append(skyCode.getOrDefault(Integer.parseInt(values.get("SKY")), "알 수 없음")).append(" ");
-            }
-
-            if (values.containsKey("PTY")) {
-                result.append(ptyCode.getOrDefault(Integer.parseInt(values.get("PTY")), "알 수 없음")).append(" ");
-                if (!"강수 없음".equals(values.get("RN1"))) {
-                    result.append("시간당 ").append(values.get("RN1")).append("mm ");
-                }
-            }
-
-            if (values.containsKey("T1H")) {
-                result.append(String.format("기온 %.1f℃ ", Double.parseDouble(values.get("T1H"))));
-            }
-
-            if (values.containsKey("REH")) {
-                result.append(String.format("습도 %.1f%% ", Double.parseDouble(values.get("REH"))));
-            }
-
-            if (values.containsKey("VEC") && values.containsKey("WSD")) {
-                result.append(String.format("풍속 %s 방향 %sm/s", degToDir(Double.parseDouble(values.get("VEC")), degCode), values.get("WSD")));
-            }
-
-            result.append("\n");
-        }
-
-        return result.toString();
-    }
-
-    private String buildCurrentWeatherJson(String apiResponse) {
-        JSONObject jsonResponse = new JSONObject(apiResponse);
-        JSONObject response = jsonResponse.getJSONObject("response");
-        JSONObject body = response.getJSONObject("body");
-        JSONObject itemsObj = body.getJSONObject("items");
-        JSONArray items = itemsObj.getJSONArray("item");
-
-        JSONArray categoryValues = new JSONArray();
-        for (int i = 0; i < items.length(); i++) {
-            JSONObject item = items.getJSONObject(i);
-            JSONObject categoryValue = new JSONObject();
-
-            String category = item.getString("category");
-            String obsrValue = item.getString("obsrValue");
-
-            String mappedCategory = mapCategory(category);
-            String mappedValue = mapObsValue(category, obsrValue);
-
-            categoryValue.put("category", mappedCategory);
-            categoryValue.put("obsrValue", mappedValue);
-
-            categoryValues.put(categoryValue);
-        }
-
-        JSONObject result = new JSONObject();
-        result.put("currentWeather", categoryValues);
-
-        return result.toString();
-    }
-
-    private String selectNearestBaseTime(LocalTime now, String[] baseTimes) {
-        int nowMinutes = now.getHour() * 60 + now.getMinute();
-        String closestTime = baseTimes[0];
-        int minDifference = Math.abs((now.getHour() * 100 + now.getMinute()) - Integer.parseInt(closestTime));
-
-        for (String time : baseTimes) {
-            int timeMinutes = Integer.parseInt(time.substring(0, 2)) * 60;
-            int difference = Math.abs(nowMinutes - timeMinutes);
-            if (difference < minDifference) {
-                minDifference = difference;
-                closestTime = time;
-            }
-        }
-        return closestTime;
-    }
-
-    private String determineBaseTime(LocalTime now) {
-        int hour = now.getHour();
-        int minute = now.getMinute();
-
-        if (minute < 10) {
-            hour = (hour == 0) ? 23 : hour - 1;
-        }
-
-        return String.format("%02d00", hour);
-    }
+//
+//
+////    private String buildTimeApiUrl(Locations location) {
+////        LocalDate today = LocalDate.now();
+////        LocalTime now = LocalTime.now();
+////        String selectedBaseTime = selectNearestBaseTime(now, getBaseTimes());
+////        String date = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+////
+////        return String.format("%s?serviceKey=%s&pageNo=%d&numOfRows=%d&dataType=%s&base_date=%s&base_time=%s&nx=%d&ny=%d",
+////                TIME_API_URL,
+////                apiKey,
+////                1,
+////                1000,
+////                "JSON",
+////                date,
+////                selectedBaseTime,
+////                location.getNx(),
+////                location.getNy());
+////    }
+////
+////    private String buildCurrentApiUrl(Locations location) {
+////        LocalDate today = LocalDate.now();
+////        LocalTime now = LocalTime.now();
+////        String baseTime = determineBaseTime(now);
+////        String date = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+////
+////        return String.format("%s?serviceKey=%s&pageNo=%d&numOfRows=%d&dataType=%s&base_date=%s&base_time=%s&nx=%d&ny=%d",
+////                CURRENT_API_URL,
+////                apiKey,
+////                1,
+////                1000,
+////                "JSON",
+////                date,
+////                baseTime,
+////                location.getNx(),
+////                location.getNy());
+////    }
+//
+//    private String processWeatherData(String apiResponse, Locations location) throws JsonProcessingException {
+//        ObjectMapper mapper = new ObjectMapper();
+//        JsonNode root = mapper.readTree(apiResponse);
+//        JsonNode items = root.path("response").path("body").path("items").path("item");
+//
+//        Map<String, JSONObject> informations = new HashMap<>();
+//
+//        if (items.isArray()) {
+//            for (JsonNode item : items) {
+//                String fcstDate = item.path("fcstDate").asText();
+//                String fcstTime = item.path("fcstTime").asText();
+//                String category = item.path("category").asText();
+//                String fcstValue = item.path("fcstValue").asText();
+//
+//                String dateTimeKey = fcstDate + fcstTime;
+//                JSONObject weatherData = informations.getOrDefault(dateTimeKey, new JSONObject());
+//
+//                switch (category) {
+//                    case "SKY":
+//                        weatherData.put("sky", getSkyCode().getOrDefault(Integer.parseInt(fcstValue), "알 수 없음"));
+//                        break;
+//                    case "PTY":
+//                        weatherData.put("precipitation", getPtyCode().getOrDefault(Integer.parseInt(fcstValue), "알 수 없음"));
+//                        break;
+//                    case "REH":
+//                        weatherData.put("humidity", fcstValue + "%");
+//                        break;
+//                    case "VEC":
+//                        weatherData.put("windDirection", degToDir(Double.parseDouble(fcstValue), getDegCode()));
+//                        break;
+//                    case "WSD":
+//                        weatherData.put("windSpeed", fcstValue + "m/s");
+//                        break;
+//                    // 필요한 다른 카테고리도 추가할 수 있음
+//                }
+//
+//                informations.put(dateTimeKey, weatherData);
+//            }
+//        }
+//
+//        // 키(날짜와 시간)를 기준으로 정렬
+//        List<String> sortedKeys = new ArrayList<>(informations.keySet());
+//        Collections.sort(sortedKeys);
+//
+//        JSONArray jsonResultArray = new JSONArray();
+//
+//        for (String key : sortedKeys) {
+//            JSONObject weatherData = informations.get(key);
+//
+//            String date = key.substring(0, 8);
+//            String time = key.substring(8, 12);
+//
+//            JSONObject jsonObject = new JSONObject();
+//            jsonObject.put("date", date);
+//            jsonObject.put("time", time);
+//            jsonObject.put("weather", weatherData);
+//
+//            jsonResultArray.put(jsonObject);
+//        }
+//
+//        JSONObject finalResult = new JSONObject();
+//        finalResult.put("weatherData", jsonResultArray);
+//
+//        return finalResult.toString(4); // pretty print JSON with indentation
+//    }
+//
+//
+//
+//    private String formatWeatherOutput(Map<String, Map<String, String>> informations, Locations location) {
+//        System.out.println("formatWeatherOutput called with informations: " + informations);
+//        System.out.println("Location: " + location);
+//
+//        StringBuilder result = new StringBuilder();
+//        Map<Integer, String> degCode = getDegCode();
+//        Map<Integer, String> skyCode = getSkyCode();
+//        Map<Integer, String> ptyCode = getPtyCode();
+//        LocalDate today = LocalDate.now();
+//
+//        for (Map.Entry<String, Map<String, String>> entry : informations.entrySet()) {
+//            String time = entry.getKey();
+//            Map<String, String> values = entry.getValue();
+//
+//            System.out.println("Processing time: " + time + " with values: " + values);
+//
+//            result.append(String.format("%s년 %s월 %s일 %s시 %s분 (%d, %d) 지역의 날씨는 ",
+//                    today.format(DateTimeFormatter.ofPattern("yyyy")),
+//                    today.format(DateTimeFormatter.ofPattern("MM")),
+//                    today.format(DateTimeFormatter.ofPattern("dd")),
+//                    time.substring(0, 2),
+//                    time.substring(2, 4),
+//                    location.getNx(),
+//                    location.getNy()));
+//
+//            if (values.containsKey("SKY")) {
+//                result.append(skyCode.getOrDefault(Integer.parseInt(values.get("SKY")), "알 수 없음")).append(" ");
+//            }
+//
+//            if (values.containsKey("PTY")) {
+//                result.append(ptyCode.getOrDefault(Integer.parseInt(values.get("PTY")), "알 수 없음")).append(" ");
+//                if (!"강수 없음".equals(values.get("RN1"))) {
+//                    result.append("시간당 ").append(values.get("RN1")).append("mm ");
+//                }
+//            }
+//
+//            if (values.containsKey("T1H")) {
+//                result.append(String.format("기온 %.1f℃ ", Double.parseDouble(values.get("T1H"))));
+//            }
+//
+//            if (values.containsKey("REH")) {
+//                result.append(String.format("습도 %.1f%% ", Double.parseDouble(values.get("REH"))));
+//            }
+//
+//            if (values.containsKey("VEC") && values.containsKey("WSD")) {
+//                result.append(String.format("풍속 %s 방향 %sm/s", degToDir(Double.parseDouble(values.get("VEC")), degCode), values.get("WSD")));
+//            }
+//
+//            result.append("\n");
+//        }
+//
+//        return result.toString();
+//    }
+//
+//    private String buildCurrentWeatherJson(String apiResponse) {
+//        JSONObject jsonResponse = new JSONObject(apiResponse);
+//        JSONObject response = jsonResponse.getJSONObject("response");
+//        JSONObject body = response.getJSONObject("body");
+//        JSONObject itemsObj = body.getJSONObject("items");
+//        JSONArray items = itemsObj.getJSONArray("item");
+//
+//        JSONArray categoryValues = new JSONArray();
+//        for (int i = 0; i < items.length(); i++) {
+//            JSONObject item = items.getJSONObject(i);
+//            JSONObject categoryValue = new JSONObject();
+//
+//            String category = item.getString("category");
+//            String obsrValue = item.getString("obsrValue");
+//
+//            String mappedCategory = mapCategory(category);
+//            String mappedValue = mapObsValue(category, obsrValue);
+//
+//            categoryValue.put("category", mappedCategory);
+//            categoryValue.put("obsrValue", mappedValue);
+//
+//            categoryValues.put(categoryValue);
+//        }
+//
+//        JSONObject result = new JSONObject();
+//        result.put("currentWeather", categoryValues);
+//
+//        return result.toString();
+//    }
+//
+//    private String selectNearestBaseTime(LocalTime now, String[] baseTimes) {
+//        int nowMinutes = now.getHour() * 60 + now.getMinute();
+//        String closestTime = baseTimes[0];
+//        int minDifference = Math.abs((now.getHour() * 100 + now.getMinute()) - Integer.parseInt(closestTime));
+//
+//        for (String time : baseTimes) {
+//            int timeMinutes = Integer.parseInt(time.substring(0, 2)) * 60;
+//            int difference = Math.abs(nowMinutes - timeMinutes);
+//            if (difference < minDifference) {
+//                minDifference = difference;
+//                closestTime = time;
+//            }
+//        }
+//        return closestTime;
+//    }
+//
+//    private String determineBaseTime(LocalTime now) {
+//        int hour = now.getHour();
+//        int minute = now.getMinute();
+//
+//        if (minute < 10) {
+//            hour = (hour == 0) ? 23 : hour - 1;
+//        }
+//
+//        return String.format("%02d00", hour);
+//    }
 
     private String degToDir(double deg, Map<Integer, String> degCode) {
         String closeDir = "";

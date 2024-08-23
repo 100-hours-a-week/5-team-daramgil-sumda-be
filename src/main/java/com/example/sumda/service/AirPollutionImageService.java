@@ -24,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class AirPollutionImageService {
-    @Value("${api.service.key}")
+    @Value("${api.service.air.key}")
     private String serviceKey;
 
     // URL 구성 요소
