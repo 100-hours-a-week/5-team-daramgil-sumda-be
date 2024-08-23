@@ -34,7 +34,7 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 public class AirInfoService {
-    @Value("${api.service.key}")
+    @Value("${api.service.air.key}")
     private String serviceKey;
 
     private final RedisTemplate<String, Object> redisTemplate;
