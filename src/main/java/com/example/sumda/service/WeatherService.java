@@ -2,6 +2,7 @@ package com.example.sumda.service;
 
 import com.example.sumda.dto.weather.response.CurrentWeatherResponseDto;
 import com.example.sumda.dto.weather.response.DaysWeatherResponseDto;
+import com.example.sumda.dto.weather.response.TimeWeatherResponseDto;
 import com.example.sumda.entity.Locations;
 import com.example.sumda.exception.CustomException;
 import com.example.sumda.exception.ErrorCode;
@@ -151,6 +152,9 @@ public class WeatherService {
             return null;  // 오류 발생 시 null 반환
         }
     }
+
+
+
 
     //단기 예보 조회에서 나온 데이터를 Dto 형태로 파싱
     private CurrentWeatherResponseDto parseWeatherResponse(String jsonResponse) {
@@ -537,60 +541,7 @@ public class WeatherService {
 //
 //
 //
-    private String formatWeatherOutput(Map<String, Map<String, String>> informations, Locations location) {
-        System.out.println("formatWeatherOutput called with informations: " + informations);
-        System.out.println("Location: " + location);
 
-        StringBuilder result = new StringBuilder();
-        Map<Integer, String> degCode = getDegCode();
-        Map<Integer, String> skyCode = getSkyCode();
-        Map<Integer, String> ptyCode = getPtyCode();
-        LocalDate today = LocalDate.now();
-
-        for (Map.Entry<String, Map<String, String>> entry : informations.entrySet()) {
-            String time = entry.getKey();
-            Map<String, String> values = entry.getValue();
-
-            System.out.println("Processing time: " + time + " with values: " + values);
-
-            result.append(String.format("%s년 %s월 %s일 %s시 %s분 (%d, %d) 지역의 날씨는 ",
-                    today.format(DateTimeFormatter.ofPattern("yyyy")),
-                    today.format(DateTimeFormatter.ofPattern("MM")),
-                    today.format(DateTimeFormatter.ofPattern("dd")),
-                    time.substring(0, 2),
-                    time.substring(2, 4),
-                    location.getNx(),
-                    location.getNy()));
-
-            if (values.containsKey("SKY")) {
-                result.append(skyCode.getOrDefault(Integer.parseInt(values.get("SKY")), "알 수 없음")).append(" ");
-            }
-
-            if (values.containsKey("PTY")) {
-                result.append(ptyCode.getOrDefault(Integer.parseInt(values.get("PTY")), "알 수 없음")).append(" ");
-                if (!"강수 없음".equals(values.get("RN1"))) {
-                    result.append("시간당 ").append(values.get("RN1")).append("mm ");
-                }
-            }
-
-            if (values.containsKey("T1H")) {
-                result.append(String.format("기온 %.1f℃ ", Double.parseDouble(values.get("T1H"))));
-            }
-
-            if (values.containsKey("REH")) {
-                result.append(String.format("습도 %.1f%% ", Double.parseDouble(values.get("REH"))));
-            }
-
-            if (values.containsKey("VEC") && values.containsKey("WSD")) {
-                result.append(String.format("풍속 %s 방향 %sm/s", degToDir(Double.parseDouble(values.get("VEC")), degCode), values.get("WSD")));
-            }
-
-            result.append("\n");
-        }
-
-        return result.toString();
-    }
-//
 //    private String buildCurrentWeatherJson(String apiResponse) {
 //        JSONObject jsonResponse = new JSONObject(apiResponse);
 //        JSONObject response = jsonResponse.getJSONObject("response");
@@ -776,5 +727,171 @@ public class WeatherService {
 
     private String[] getBaseTimes() {
         return new String[]{"0200", "0500", "0800", "1100", "1400", "1700", "2000", "2300"};
+    }
+
+    public List<TimeWeatherResponseDto> getTimeWeather(Long id) {
+
+        Locations location = getLocationById(id);
+
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now().minusHours(1);
+
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HHmm");
+
+        String date = today.format(dateFormatter);
+        String time = now.format(timeFormatter);
+
+        String currentWeatherUrl = timeDayBuildUrl(TIME_API_URL, apiKey, date, time, location.getNx(), location.getNy());
+
+        System.out.println("currentWeatherUrl: " + currentWeatherUrl);
+
+        String dataResponse = sendRequest(currentWeatherUrl);
+
+
+//        JSONObject landForecastJson = new JSONObject(dataResponse).getJSONObject("response").getJSONObject("body").getJSONObject("items").getJSONArray("item").getJSONObject(0);
+        JSONArray jsonArray = new JSONObject(dataResponse).getJSONObject("response")
+                .getJSONObject("body")
+                .getJSONObject("items")
+                .getJSONArray("item");
+        List<TimeWeatherResponseDto> weatherList = new ArrayList<>();
+
+        // 데이터를 시간대별로 그룹화하기 위한 맵
+        Map<String, Map<String, String>> timeDataMap = new HashMap<>();
+
+        // JSON 배열을 순회하면서 데이터 추출 및 그룹화
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+
+            String fcstDate = jsonObject.getString("fcstDate");
+            String fcstTime = jsonObject.getString("fcstTime");
+            String category = jsonObject.getString("category");
+            String value = jsonObject.getString("fcstValue");
+
+            String dateTimeKey = fcstDate + fcstTime;
+
+            // 해당 시간대 데이터가 없으면 새로 추가
+            timeDataMap.putIfAbsent(dateTimeKey, new HashMap<>());
+            Map<String, String> dataMap = timeDataMap.get(dateTimeKey);
+            dataMap.put(category, value);
+        }
+
+        // 각 시간대별 데이터를 DTO로 변환
+        for (Map.Entry<String, Map<String, String>> entry : timeDataMap.entrySet()) {
+            String dateTimeKey = entry.getKey();
+            String fcstDate = dateTimeKey.substring(0, 8); // 날짜 부분 추출
+            String fcstTime = dateTimeKey.substring(8);   // 시간 부분 추출
+            Map<String, String> dataMap = entry.getValue();
+
+            // 데이터를 DTO에 매핑
+            String sky = getSkyCondition(dataMap.get("SKY"));
+            String precipitation = getPrecipitationCondition(dataMap.get("PTY"));
+            String humidity = dataMap.getOrDefault("REH", "0") + "%";
+            String windDirection = dataMap.getOrDefault("VEC", "0") + "°";
+            String windSpeed = dataMap.getOrDefault("WSD", "0") + "m/s";
+
+            TimeWeatherResponseDto.Weather weather = new TimeWeatherResponseDto.Weather(
+                    sky,
+                    precipitation,
+                    humidity,
+                    windDirection,
+                    windSpeed
+            );
+
+            TimeWeatherResponseDto dto = new TimeWeatherResponseDto(fcstDate, fcstTime, weather);
+            System.out.println(dto);
+            weatherList.add(dto);
+        }
+
+        return weatherList;
+    }
+
+    public TimeWeatherResponseDto parseWeatherData(JSONArray jsonArray) {
+        String date = null;
+        String time = null;
+        String sky = null;
+        String precipitation = null;
+        String humidity = null;
+        String windDirection = null;
+        String windSpeed = null;
+
+        // 데이터들을 category에 따라 분류
+        Map<String, String> dataMap = new HashMap<>();
+
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+
+            // 첫번째 데이터를 기준으로 date와 time을 설정
+            if (date == null && time == null) {
+                date = jsonObject.getString("fcstDate");
+                time = jsonObject.getString("fcstTime");
+            }
+
+            String category = jsonObject.getString("category");
+            String fcstValue = jsonObject.getString("fcstValue");
+
+            dataMap.put(category, fcstValue);
+        }
+
+        // 데이터를 DTO에 매핑
+        sky = getSkyCondition(dataMap.get("SKY"));
+        precipitation = getPrecipitationCondition(dataMap.get("PTY"));
+        humidity = dataMap.getOrDefault("REH", "0") + "%";
+        windDirection = dataMap.getOrDefault("VEC", "0") + "°";
+        windSpeed = dataMap.getOrDefault("WSD", "0") + "m/s";
+
+        TimeWeatherResponseDto.Weather weather = new TimeWeatherResponseDto.Weather(
+                sky,
+                precipitation,
+                humidity,
+                windDirection,
+                windSpeed
+        );
+
+        return new TimeWeatherResponseDto(date, time, weather);
+    }
+
+    private String getSkyCondition(String skyValue) {
+        switch (skyValue) {
+            case "1":
+                return "맑음";
+            case "3":
+                return "구름많음";
+            case "4":
+                return "흐림";
+            default:
+                return "알 수 없음";
+        }
+    }
+
+    private String getPrecipitationCondition(String ptyValue) {
+        switch (ptyValue) {
+            case "0":
+                return "강수 없음";
+            case "1":
+                return "비";
+            case "2":
+                return "비/눈";
+            case "3":
+                return "눈";
+            case "4":
+                return "소나기";
+            default:
+                return "알 수 없음";
+        }
+    }
+
+    private String timeDayBuildUrl(String baseUrl, String apiKey, String date, String time, int nx, int ny) {
+        try {
+            String encodedApiKey = URLEncoder.encode(apiKey, StandardCharsets.UTF_8.toString());
+            String encodedDate = URLEncoder.encode(date, StandardCharsets.UTF_8.toString());
+            String encodedTime = URLEncoder.encode(time, StandardCharsets.UTF_8.toString());
+
+            // URL을 생성합니다. 필요한 매개변수들을 붙입니다.
+            return String.format("%s?ServiceKey=%s&base_date=%s&base_time=%s&nx=%d&ny=%d&dataType=json&pageNo=1&numOfRows=700", baseUrl, encodedApiKey, encodedDate, encodedTime, nx, ny);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;  // 오류 발생 시 null 반환
+        }
     }
 }

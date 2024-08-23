@@ -26,4 +26,9 @@ public class WeatherController {
         return ResponseUtils.createResponse(HttpStatus.OK, "날씨 예보 조회 성공",weatherService.getDaysWeatherByID(id));
     }
 
+    @GetMapping("/time")
+    public ResponseEntity<?> getTimeWeather(@RequestParam("id") Long id) {
+        return ResponseUtils.createResponse(HttpStatus.OK, "시간별 날씨 조회 성공",weatherService.getTimeWeather(id));
+    }
+
 }
