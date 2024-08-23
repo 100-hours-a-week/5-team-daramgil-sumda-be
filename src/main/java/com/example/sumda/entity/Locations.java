@@ -35,7 +35,7 @@ public class Locations {
     private int ny;
 
     @Column(name = "code")
-    private int code;
+    private String code;
 
     @ManyToOne
     @JoinColumn(name = "station_id", insertable = false, updatable = false)
