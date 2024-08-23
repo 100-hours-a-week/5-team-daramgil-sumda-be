@@ -1,10 +1,10 @@
 package com.example.sumda.dto.weather.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.*;
 
 @Getter
 @AllArgsConstructor
+@ToString
 public class CurrentWeatherResponseDto {
 
     private String weather;               // 날씨 (강수형태)
