@@ -1,5 +1,6 @@
 package com.example.sumda.dto.weather.response;
 
+
 import lombok.*;
 
 @Getter

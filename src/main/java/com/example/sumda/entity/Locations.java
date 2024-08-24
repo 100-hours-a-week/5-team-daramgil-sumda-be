@@ -34,7 +34,7 @@ public class Locations {
     @Column(name = "ny")
     private int ny;
 
-    @Column(name="code")
+    @Column(name = "code")
     private String code;
 
     @ManyToOne
