@@ -87,7 +87,7 @@ public class WeatherService {
         }
     }
 
-
+    // TODO: API 요청을 할 때 현재 시간이 15:01 이면 15시 데이터가 불러와지는데 이럴 경우 아직 API 서버에 데이터가 업데이트 되지 않아 NULL 값이 받아와짐
     //단기 예보 조회에서 나온 데이터를 Dto 형태로 파싱
     private CurrentWeatherResponseDto parseWeatherResponse(String jsonResponse) {
         ObjectMapper objectMapper = new ObjectMapper();
