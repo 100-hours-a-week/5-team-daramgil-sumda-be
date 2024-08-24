@@ -1,5 +1,6 @@
 package com.example.sumda.service;
 
+import com.example.sumda.constans.WeatherDistrictCode;
 import com.example.sumda.dto.weather.response.CurrentWeatherResponseDto;
 import com.example.sumda.dto.weather.response.DaysWeatherResponseDto;
 import com.example.sumda.dto.weather.response.TimeWeatherResponseDto;
@@ -14,6 +15,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,75 +50,6 @@ public class WeatherService {
     private static final String TIME_API_URL = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst";
     private static final String midTermLandForecastUrl = "https://apis.data.go.kr/1360000/MidFcstInfoService/getMidLandFcst";
     private static final String midTermTemperatureUrl = "https://apis.data.go.kr/1360000/MidFcstInfoService/getMidTa";
-    // Weather district codes for different regions
-    private static final String SEOUL_INCHEON_GYEONGGI_CODE = "11B00000";
-    private static final String GANGWON_YEONGSEO_CODE = "11D10000";
-    private static final String GANGWON_YEONGDONG_CODE = "11D20000";
-    private static final String DAEJEON_SEJONG_CHUNGCHEONGNAM_CODE = "11C20000";
-    private static final String CHUNGCHEONGBUK_CODE = "11C10000";
-    private static final String GWANGJU_JEOLLANAM_CODE = "11F20000";
-    private static final String JEOLLABUK_CODE = "11F10000";
-    private static final String DAEGU_GYEONGBUK_CODE = "11H10000";
-    private static final String BUSAN_ULSAN_GYEONGNAM_CODE = "11H20000";
-    private static final String JEJU_CODE = "11G00000";
-    private static final Map<String, String> weatherDistrictCodeMap = new HashMap<>();
-
-    static {
-        // 서울, 인천, 경기도
-        weatherDistrictCodeMap.put("서울특별시", SEOUL_INCHEON_GYEONGGI_CODE);
-        weatherDistrictCodeMap.put("인천광역시", SEOUL_INCHEON_GYEONGGI_CODE);
-        weatherDistrictCodeMap.put("경기도", SEOUL_INCHEON_GYEONGGI_CODE);
-
-        // 강원도 영서 지역
-        weatherDistrictCodeMap.put("춘천시", GANGWON_YEONGSEO_CODE);
-        weatherDistrictCodeMap.put("원주시", GANGWON_YEONGSEO_CODE);
-        weatherDistrictCodeMap.put("홍천군", GANGWON_YEONGSEO_CODE);
-        weatherDistrictCodeMap.put("횡성군", GANGWON_YEONGSEO_CODE);
-        weatherDistrictCodeMap.put("영월군", GANGWON_YEONGSEO_CODE);
-        weatherDistrictCodeMap.put("정선군", GANGWON_YEONGSEO_CODE);
-        weatherDistrictCodeMap.put("철원군", GANGWON_YEONGSEO_CODE);
-        weatherDistrictCodeMap.put("화천군", GANGWON_YEONGSEO_CODE);
-        weatherDistrictCodeMap.put("양구군", GANGWON_YEONGSEO_CODE);
-        weatherDistrictCodeMap.put("인제군", GANGWON_YEONGSEO_CODE);
-        weatherDistrictCodeMap.put("평창군", GANGWON_YEONGSEO_CODE); // 대관령면 제외
-
-        // 강원도 영동 지역
-        weatherDistrictCodeMap.put("강릉시", GANGWON_YEONGDONG_CODE);
-        weatherDistrictCodeMap.put("동해시", GANGWON_YEONGDONG_CODE);
-        weatherDistrictCodeMap.put("삼척시", GANGWON_YEONGDONG_CODE);
-        weatherDistrictCodeMap.put("속초시", GANGWON_YEONGDONG_CODE);
-        weatherDistrictCodeMap.put("태백시", GANGWON_YEONGDONG_CODE);
-        weatherDistrictCodeMap.put("고성군", GANGWON_YEONGDONG_CODE);
-        weatherDistrictCodeMap.put("양양군", GANGWON_YEONGDONG_CODE);
-        weatherDistrictCodeMap.put("평창군 대관령면", GANGWON_YEONGDONG_CODE); // 특이 케이스
-
-        // 대전, 세종, 충청남도
-        weatherDistrictCodeMap.put("대전광역시", DAEJEON_SEJONG_CHUNGCHEONGNAM_CODE);
-        weatherDistrictCodeMap.put("세종특별자치시", DAEJEON_SEJONG_CHUNGCHEONGNAM_CODE);
-        weatherDistrictCodeMap.put("충청남도", DAEJEON_SEJONG_CHUNGCHEONGNAM_CODE);
-
-        // 충청북도
-        weatherDistrictCodeMap.put("충청북도", CHUNGCHEONGBUK_CODE);
-
-        // 광주, 전라남도
-        weatherDistrictCodeMap.put("광주광역시", GWANGJU_JEOLLANAM_CODE);
-        weatherDistrictCodeMap.put("전라남도", GWANGJU_JEOLLANAM_CODE);
-
-        // 전라북도
-        weatherDistrictCodeMap.put("전북특별자치도", JEOLLABUK_CODE);
-
-        // 대구, 경상북도
-        weatherDistrictCodeMap.put("대구광역시", DAEGU_GYEONGBUK_CODE);
-        weatherDistrictCodeMap.put("경상북도", DAEGU_GYEONGBUK_CODE);
-
-        // 부산, 울산, 경상남도
-        weatherDistrictCodeMap.put("부산광역시", BUSAN_ULSAN_GYEONGNAM_CODE);
-        weatherDistrictCodeMap.put("울산광역시", BUSAN_ULSAN_GYEONGNAM_CODE);
-        weatherDistrictCodeMap.put("경상남도", BUSAN_ULSAN_GYEONGNAM_CODE);
-
-        // 제주도
-        weatherDistrictCodeMap.put("제주특별자치도", JEJU_CODE);
-    }
 
     // 현재 날씨 간단 조회
     public CurrentWeatherResponseDto getCurrentWeather(Long id) {
@@ -161,8 +94,15 @@ public class WeatherService {
         try {
 
             // JSON 전체를 JsonNode로 파싱
+
             JsonNode rootNode = objectMapper.readTree(jsonResponse);
-            JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
+            JsonNode itemsNode;
+            try {
+                itemsNode = rootNode.path("response").path("body").path("items").path("item");
+            } catch (Exception e) {
+                log.error("Failed to parse JSON: {}", e.getMessage());
+                throw new CustomException(ErrorCode.JSON_PARSE_ERROR);
+            }
 
             // 각 값을 저장할 변수
             String weather = null;
@@ -250,7 +190,7 @@ public class WeatherService {
 
         List<DaysWeatherResponseDto> getOneToTWoDaysWeather = getOneToTWoDaysWeather(id);
         List<DaysWeatherResponseDto> getThreeToTenDaysWeather = getFourToTenDaysWeather(id);
-        List <DaysWeatherResponseDto> allDaysWeather= new ArrayList<>();
+        List<DaysWeatherResponseDto> allDaysWeather = new ArrayList<>();
 
         allDaysWeather.addAll(getOneToTWoDaysWeather);
         allDaysWeather.addAll(getThreeToTenDaysWeather);
@@ -289,14 +229,21 @@ public class WeatherService {
 
         String currentWeatherUrl = timeDayBuildUrl(TIME_API_URL, apiKey, date, time, location.getNx(), location.getNy());
 
-        System.out.println(currentWeatherUrl);
-
         String dataResponse = sendRequest(currentWeatherUrl);
 
-        JSONArray jsonArray = new JSONObject(dataResponse).getJSONObject("response")
-                .getJSONObject("body")
-                .getJSONObject("items")
-                .getJSONArray("item");
+        JSONArray jsonArray;
+        try {
+            jsonArray = new JSONObject(dataResponse).getJSONObject("response")
+                    .getJSONObject("body")
+                    .getJSONObject("items")
+                    .getJSONArray("item");
+        } catch (JSONException e) {
+            log.error("Failed to parse JSON: {}", e.getMessage());
+            throw new CustomException(ErrorCode.JSON_PARSE_ERROR);
+        } catch (NullPointerException e) {
+            log.error("Null value encountered in JSON response: {}", e.getMessage());
+            throw new CustomException(ErrorCode.NULL_POINTER_ERROR);
+        }
 
 
         // 오늘 날짜를 기준으로 내일, 모레, 글피 날짜 계산
@@ -306,8 +253,6 @@ public class WeatherService {
 
         // 데이터를 시간대별로 그룹화하기 위한 맵
         Map<String, Map<String, String>> dayDataMap = new HashMap<>();
-//        dayDataMap.put(tomorrow, new HashMap<>());
-//        dayDataMap.put(dayAfterTomorrow, new HashMap<>());
 
         // JSON 배열을 순회하면서 데이터를 추출
         for (int i = 0; i < jsonArray.length(); i++) {
@@ -329,7 +274,6 @@ public class WeatherService {
                     }
                     break;
                 case "TMN":
-                    System.out.println("최저 온도: " + fcstValue);
                     if (fcstTime.equals("0600")) {
                         dayDataMap.get(fcstDate).put("TMN", fcstValue);
                     }
@@ -357,8 +301,6 @@ public class WeatherService {
         for (Map.Entry<String, Map<String, String>> entry : dayDataMap.entrySet()) {
             String currentDate = entry.getKey();
 
-            // 현재 루프에서 처리되는 데이터 확인 (선택 사항)
-            System.out.println("현재 루프에서 처리 중인 키: " + currentDate);
 
             Map<String, String> weatherData = entry.getValue();
 
@@ -377,7 +319,6 @@ public class WeatherService {
 
 
             if (dayOffset != -1) {  // 오늘 날짜는 제외
-                System.out.println("dayOffset: " + dayOffset);
                 DaysWeatherResponseDto dto = DaysWeatherResponseDto.of(
                         maxTemperature,
                         minTemperature,
@@ -414,7 +355,7 @@ public class WeatherService {
         // 기존의 weatherDistrictCodeMap에서 코드를 가져오는 부분 (원래의 로직 유지)
         String district = location.getDistrict();
         String key = extractKeyFromDistrict(district);
-        String weatherCode = weatherDistrictCodeMap.get(key);
+        String weatherCode = WeatherDistrictCode.getCodeByDistrict(key);
 
         // 새로운 location_code_mapping 테이블에서 code 가져오기
         String dWeatherCode = location.getCode();
@@ -452,20 +393,11 @@ public class WeatherService {
                 weatherAm = landForecastJson.optString(amKey, "N/A");
                 weatherPm = landForecastJson.optString(pmKey, "N/A");
 
-                if ("N/A".equals(weatherAm)) {
-                    System.out.println("Missing AM weather data for day " + i + " with key: " + amKey);
-                }
-                if ("N/A".equals(weatherPm)) {
-                    System.out.println("Missing PM weather data for day " + i + " with key: " + pmKey);
-                }
             } else {
                 // 8, 9, 10일은 AM/PM이 아닌 단일 값
                 String weatherKey = "wf" + i;
                 weather = landForecastJson.optString(weatherKey, "N/A");
 
-                if ("N/A".equals(weather)) {
-                    System.out.println("Missing weather data for day " + i + " with key: " + weatherKey);
-                }
             }
 
             // 최저/최고 온도 처리
@@ -474,13 +406,6 @@ public class WeatherService {
 
             minTemperature = temperatureForecastJson.optInt(minKey, 0);
             maxTemperature = temperatureForecastJson.optInt(maxKey, 0);
-
-            if (minTemperature == 0) {
-                System.out.println("Missing Min Temperature data for day " + i + " with key: " + minKey);
-            }
-            if (maxTemperature == 0) {
-                System.out.println("Missing Max Temperature data for day " + i + " with key: " + maxKey);
-            }
 
             DaysWeatherResponseDto dto;
             if (i <= 7) {
@@ -522,6 +447,7 @@ public class WeatherService {
                 throw new RuntimeException("Failed to get data from API: " + response.statusCode());
             }
         } catch (IOException | InterruptedException e) {
+            log.error("Failed to send request: {}", e.getMessage());
             throw new CustomException(ErrorCode.SEVER_ERROR);
         }
     }
@@ -578,8 +504,8 @@ public class WeatherService {
             // URL을 생성합니다. 필요한 매개변수들을 붙입니다.
             return String.format("%s?ServiceKey=%s&regId=%s&tmFc=%s&dataType=json", baseUrl, encodedApiKey, encodedCode, encodedTmFc);
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;  // 오류 발생 시 null 반환
+            log.error("잘못된 URI입니다: {}", e.getMessage());
+            throw new CustomException(ErrorCode.SEVER_ERROR);
         }
     }
 
@@ -639,27 +565,52 @@ public class WeatherService {
         Locations location = getLocationById(id);
 
         LocalDate today = LocalDate.now();
-        LocalTime now = LocalTime.now().minusHours(2);
+        LocalTime now = LocalTime.now();
 
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HHmm");
 
         String date = today.format(dateFormatter);
-        String time = now.format(timeFormatter);
+        // 해당 시간대 (2, 5, 8, 11, 14, 17, 20, 23시)
+        int[] hours = {2, 5, 8, 11, 14, 17, 20, 23};
+
+        // 현재 시간에 가장 가까운 이전 시간 찾기
+        LocalTime closestHour = LocalTime.of(2, 0);  // 기본값은 2시
+
+        for (int hour : hours) {
+            LocalTime tempTime = LocalTime.of(hour, 0);
+            if (!now.isBefore(tempTime)) {  // 현재 시간이 해당 시간대 이후일 때
+                closestHour = tempTime;  // 이전 시간으로 업데이트
+            } else {
+                break;  // 조건을 만족하지 않으면 종료
+            }
+        }
+
+        String time = closestHour.format(timeFormatter);  // hhmm 형식으로 변환
 
         String currentWeatherUrl = timeDayBuildUrl(TIME_API_URL, apiKey, date, time, location.getNx(), location.getNy());
-
-        System.out.println(currentWeatherUrl);
 
         String dataResponse = sendRequest(currentWeatherUrl);
 
 
-        JSONArray jsonArray = new JSONObject(dataResponse).getJSONObject("response")
-                .getJSONObject("body")
-                .getJSONObject("items")
-                .getJSONArray("item");
-        List<TimeWeatherResponseDto> weatherList = new ArrayList<>();
+        JSONArray jsonArray;
+        try {
+            jsonArray = new JSONObject(dataResponse).getJSONObject("response")
+                    .getJSONObject("body")
+                    .getJSONObject("items")
+                    .getJSONArray("item");
 
+        } catch (JSONException e) {
+
+            log.error("Failed to parse JSON: {}", e.getMessage());
+            log.error("URL: {}", currentWeatherUrl);
+            throw new CustomException(ErrorCode.JSON_PARSE_ERROR);
+        } catch (NullPointerException e) {
+            log.error("Null value encountered in JSON response: {}", e.getMessage());
+            throw new CustomException(ErrorCode.NULL_POINTER_ERROR);
+        }
+
+        List<TimeWeatherResponseDto> weatherList = new ArrayList<>();
         // 데이터를 시간대별로 그룹화하기 위한 맵
         Map<String, Map<String, String>> timeDataMap = new HashMap<>();
 
@@ -732,8 +683,8 @@ public class WeatherService {
             // URL을 생성합니다. 필요한 매개변수들을 붙입니다.
             return String.format("%s?ServiceKey=%s&base_date=%s&base_time=%s&nx=%d&ny=%d&dataType=json&pageNo=1&numOfRows=700", baseUrl, encodedApiKey, encodedDate, encodedTime, nx, ny);
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;  // 오류 발생 시 null 반환
+            log.error("잘못된 URI입니다: {}", e.getMessage());
+            throw new CustomException(ErrorCode.SEVER_ERROR);
         }
     }
 }
