@@ -21,7 +21,9 @@ public enum ErrorCode {
     LOCATION_ERROR(HttpStatus.BAD_REQUEST, "위치 정보가 잘못되었습니다"),
 
     // 서버 오류
-    SEVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,  "서버 오류");
+    SEVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,  "서버 오류"),
+    JSON_PARSE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "json 파싱 오류"),
+    NULL_POINTER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "null pointer 오류");
 
     private final HttpStatus httpStatus;
 
