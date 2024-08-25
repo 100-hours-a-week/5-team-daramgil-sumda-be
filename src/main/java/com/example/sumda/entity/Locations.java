@@ -41,4 +41,7 @@ public class Locations {
     @JoinColumn(name = "station_id", insertable = false, updatable = false)
     private AirQualityStations station;
 
+//  아큐웨더 api 요청하고 저장하고 있는 데이터 테이블인 city_weather_data 의 ID 이지만 급해서 아직 외래키 연결 안해두었습니다.
+    @Column(name = "city_weather_id")
+    private Long cityWeatherId;
 }

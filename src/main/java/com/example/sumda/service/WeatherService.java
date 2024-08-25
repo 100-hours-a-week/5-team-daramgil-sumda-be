@@ -68,7 +68,7 @@ public class WeatherService {
 
         String dataResponse = sendRequest(currentWeatherUrl);
         CurrentWeatherResponseDto dto = parseWeatherResponse(dataResponse);
-
+        System.out.println(dto);
         return dto;
     }
 
