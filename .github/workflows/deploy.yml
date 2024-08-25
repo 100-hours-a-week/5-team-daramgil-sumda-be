@@ -2,7 +2,7 @@ name: CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [ develop ]
 
 jobs:
   build:
@@ -68,14 +68,25 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} echo "SSH connection successful"
         # SSH 연결을 확인함 -> 성공 메시지를 출력
 
+      - name: Create .env file on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "echo 'DB_URL=${{ secrets.DB_URL }}' > /home/${{ secrets.EC2_USER }}/.env"
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "echo 'DB_USERNAME=${{ secrets.DB_USERNAME }}' >> /home/${{ secrets.EC2_USER }}/.env"
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "echo 'DB_PASSWORD=${{ secrets.DB_PASSWORD }}' >> /home/${{ secrets.EC2_USER }}/.env"
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "echo 'OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}' >> /home/${{ secrets.EC2_USER }}/.env"
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "echo 'AIR_PUBLIC_API_KEY=${{ secrets.AIR_PUBLIC_API_KEY }}' >> /home/${{ secrets.EC2_USER }}/.env"
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "echo 'WEATHER_PUBLIC_API_KEY=${{ secrets.WEATHER_PUBLIC_API_KEY }}' >> /home/${{ secrets.EC2_USER }}/.env"
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "echo 'WEATHER_PUBLIC_API_KEY2=${{ secrets.WEATHER_PUBLIC_API_KEY2 }}' >> /home/${{ secrets.EC2_USER }}/.env"
+        # .env 파일을 EC2 인스턴스에 생성하고 환경 변수 값을 추가
+
       - name: Copy JAR to EC2
         run: |
           scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa sumda-0.0.1-SNAPSHOT.jar ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/sumda-0.0.1-SNAPSHOT.jar
         # 빌드된 JAR 파일을 SCP를 사용하여 EC2 인스턴스로 복사함
 
-      - name: SSH and Run JAR
+      - name: SSH and Run JAR with .env
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            nohup java -jar /home/${{ secrets.EC2_USER }}/sumda-0.0.1-SNAPSHOT.jar > /home/${{ secrets.EC2_USER }}/sumda.log 2>&1 &
+            nohup java -jar /home/${{ secrets.EC2_USER }}/sumda-0.0.1-SNAPSHOT.jar --spring.config.location=/home/${{ secrets.EC2_USER }}/.env > /home/${{ secrets.EC2_USER }}/sumda.log 2>&1 &
           EOF
         # SSH를 통해 EC2 인스턴스에 접속하고 JAR 파일을 백그라운드에서 실행
