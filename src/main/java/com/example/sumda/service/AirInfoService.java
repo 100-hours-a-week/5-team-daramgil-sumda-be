@@ -40,7 +40,6 @@ public class AirInfoService {
     private String serviceKey;
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private final ChatClient chatClient;
     private final LocationRepository locationRepository;
     private final AirQualityStationRepository airQualityStationRepository;
 
