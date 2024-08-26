@@ -58,7 +58,7 @@ api:
       key: ${WEATHER_PUBLIC_API_KEY}
 
 sentry:
-  dsn: "${SENTRY_DSN}"
+  dsn: ${SENTRY_DSN}
   exception-resolver-order: -2147483647
 
 

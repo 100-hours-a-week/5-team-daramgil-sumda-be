@@ -20,6 +20,8 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
+        env:
+          PROD_SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: ./gradlew clean build
 
       - name: List build directory
@@ -78,28 +80,3 @@ jobs:
             export $(grep -v '^#' /home/${{ secrets.EC2_USER }}/.env | xargs)
             nohup java -jar /home/${{ secrets.EC2_USER }}/sumda-0.0.1-SNAPSHOT.jar > /home/${{ secrets.EC2_USER }}/sumda.log 2>&1 &
           EOF
-
-
-      # Sentry CLI 작업 추가
-      - name: Install Sentry CLI
-        run: curl -sL https://sentry.io/get-cli/ | bash
-
-      - name: Create a Sentry Release
-        run: sentry-cli releases new -p your-project-name $GITHUB_SHA
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-
-      - name: Set Commits in Sentry Release
-        run: sentry-cli releases set-commits --auto $GITHUB_SHA
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-
-      - name: Finalize Sentry Release
-        run: sentry-cli releases finalize $GITHUB_SHA
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-
-      - name: Notify Sentry of Deployment
-        run: sentry-cli releases deploys $GITHUB_SHA new -e production
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
