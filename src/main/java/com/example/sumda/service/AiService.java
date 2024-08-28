@@ -11,6 +11,7 @@ import com.example.sumda.exception.CustomException;
 import com.example.sumda.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Log4j2
+@Slf4j
 public class AiService {
 
     private final ChatClient chatClient;
@@ -29,10 +30,6 @@ public class AiService {
     public WeatherAndAirReviewResponseDto getSummaryAi(WeatherAndAirRequestDto dto) {
 
         try {
-            String locationName = locationService.getLocationName(dto.getLocationId());
-
-            String locationHash = redisService.getLocationHash(locationName);
-
 
 
             String combinedAirInfo = String.format("민감군 여부: %s, 대기환경지수 값: %d, 대기환경지수 등급: %d",
@@ -60,6 +57,7 @@ public class AiService {
 
             return WeatherAndAirReviewResponseDto.of(oneLineReview, oneLineWeather, review);
         } catch(Exception e) {
+            System.out.println(e.getMessage());
             log.error("AI 서비스 호출 중 오류가 발생했습니다.", e);
             throw new CustomException(ErrorCode.AI_ERROR);
         }
@@ -94,6 +92,7 @@ public class AiService {
 
             return recommends;
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             log.error("AI 서비스 호출 중 오류가 발생했습니다.", e);
             throw new CustomException(ErrorCode.AI_ERROR);
         }
