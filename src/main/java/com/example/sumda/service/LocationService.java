@@ -45,4 +45,14 @@ public class LocationService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public String getLocationName(Long locationId) {
+        try {
+            Locations locations = locationsRepository.findById(locationId).orElseThrow(() -> new CustomException(ErrorCode.LOCATION_ERROR));
+            return locations.getDistrict();
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.LOCATION_ERROR);
+        }
+    }
+
 }

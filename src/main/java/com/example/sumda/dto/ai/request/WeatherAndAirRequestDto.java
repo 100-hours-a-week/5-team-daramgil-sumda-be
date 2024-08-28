@@ -13,5 +13,5 @@ public class WeatherAndAirRequestDto {
     private String sensitiveGroup;     // 민감군 여부 (0: 일반, 1: 민감군)
     private String weatherType;     // 날씨 타입 (예: 맑음, 흐림, 비 등)
     private double currentTemperature; // 현재 온도
-
+    private Long locationId;         // 지역 id
 }

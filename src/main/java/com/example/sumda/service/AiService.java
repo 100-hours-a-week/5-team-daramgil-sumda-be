@@ -23,34 +23,40 @@ import java.util.List;
 public class AiService {
 
     private final ChatClient chatClient;
+    private final RedisService redisService;
+    private final LocationService locationService;
 
     public WeatherAndAirReviewResponseDto getSummaryAi(WeatherAndAirRequestDto dto) {
 
         try {
+            String locationName = locationService.getLocationName(dto.getLocationId());
+
+            String locationHash = redisService.getLocationHash(locationName);
+
+
+
             String combinedAirInfo = String.format("민감군 여부: %s, 대기환경지수 값: %d, 대기환경지수 등급: %d",
                     dto.getSensitiveGroup(), dto.getKhaiValue(), dto.getKhaiGrade());
             String oneLineReview = chatClient.prompt()
-                    .system(sp -> sp.param("text", AirQualityConstants.CUTE_RESPONSE_PROMPT))
+                    .system(sp -> sp.param("text", AirQualityConstants.AIR_RESPONSE_PROMPT))
                     .user(combinedAirInfo)
                     .call()
                     .content();
 
             String review = chatClient.prompt()
-                    .system(sp -> sp.param("text", "우리 서비스는 귀엽게 대답을 해줘야 돼." +
-                            "<다음> 아래의 데이터를 학습하고 거기에 대해서 오늘의 대기질과 날씨의 대한 행동 요령을 추천 해줘." +
-                            "<다음>"))
+                    .system(sp -> sp.param("text", AirQualityConstants.REVIEW_RESPONSE_PROMPT))
                     .user(dto.toString())
                     .call()
                     .content();
 
             String combinedWeatherInfo = String.format("날씨 여부 : %s, 현재 온도 : %.1f", dto.getWeatherType(), dto.getCurrentTemperature());
             String oneLineWeather = chatClient.prompt()
-                    .system(sp -> sp.param("text", "우리 서비스는 귀엽게 대답을 해줘야 돼." +
-                            "<다음> 아래의 데이터를 학습하고 거기에 대해서 오늘의 날씨를을 딱 한줄로 평가해줘." +
-                            "<다음>"))
+                    .system(sp -> sp.param("text", AirQualityConstants.WEATHER_RESPONSE_PROMPT))
                     .user(combinedWeatherInfo)
                     .call()
                     .content();
+
+
 
             return WeatherAndAirReviewResponseDto.of(oneLineReview, oneLineWeather, review);
         } catch(Exception e) {
@@ -63,8 +69,7 @@ public class AiService {
 
         try {
             List<ActivityReasonResponseDto> recommends = chatClient.prompt()
-                    .system(sp -> sp.param("text", "<다음> 아래에 데이터를 보고 오늘의 온도를 보고 할만한 활동을 추천해주고 오늘의 대기질과 날씨 데이터와 관련지어서 이유도 설명해줘야돼. activityName과 reason을 나눠서 여러개를 한글로 추천해주고 json 형식으로 출력해줘 \n" +
-                            "<다음>\n"))
+                    .system(sp -> sp.param("text", AirQualityConstants.ACTIVITY_RESPONSE_PROMPT))
                     .user(dto.toString())
                     .call()
                     .entity(new ParameterizedTypeReference<List<ActivityReasonResponseDto>>() {
@@ -81,8 +86,7 @@ public class AiService {
 
         try {
             List<ClothesReasonResponseDto> recommends = chatClient.prompt()
-                    .system(sp -> sp.param("text", "<다음> 아래에 데이터를 보고 오늘의 옷을 추천해주는데 clothesName과 reason을 나눠서 여러개를 한글로 추천해주고 json 형식으로 출력해줘 \n" +
-                            "<다음>"))
+                    .system(sp -> sp.param("text", AirQualityConstants.CLOTHES_RESPONSE_PROMPT))
                     .user(dto.toString())
                     .call()
                     .entity(new ParameterizedTypeReference<List<ClothesReasonResponseDto>>() {

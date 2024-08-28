@@ -21,7 +21,6 @@ public class LocationController {
 
     @GetMapping("/convert")
     public ResponseEntity<?> findNearestLocations(@RequestParam Double latitude, @RequestParam Double longitude) {
-        System.out.println("latitude: " + latitude + ", longitude: " + longitude);
         return ResponseUtils.createResponse(HttpStatus.OK,"가장 가까운 위치를 찾았습니다.", locationService.findNearestLocations(latitude, longitude));
     }
 
