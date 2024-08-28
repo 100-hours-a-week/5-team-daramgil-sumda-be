@@ -4,24 +4,26 @@ import com.example.sumda.dto.airinfo.response.AirPollutionImageResponseDto;
 import com.example.sumda.dto.airinfo.response.AirQualityDto;
 import com.example.sumda.entity.AirPollutionImages;
 import com.example.sumda.entity.AirQualityData;
+import com.example.sumda.entity.AirQualityStations;
 import com.example.sumda.entity.Locations;
 import com.example.sumda.exception.CustomException;
 import com.example.sumda.exception.ErrorCode;
 import com.example.sumda.repository.AirPollutionImageRepository;
 import com.example.sumda.repository.AirQualityDataRepository;
+import com.example.sumda.repository.AirQualityStationRepository;
 import com.example.sumda.repository.LocationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class AirQualityService {
 
+    private final AirQualityStationRepository airQualityStationRepository;
     private final AirQualityDataRepository airQualityDataRepository;
     private final LocationRepository locationRepository;
     private final AirPollutionImageRepository airPollutionImageRepository;
@@ -29,44 +31,63 @@ public class AirQualityService {
 
     // 측정소별 실시간 측정정보 - 대기질
     public AirQualityDto getNowAirQualityData(long id) {
-        // 주소 id로 관측소 id 가져오기
-        Locations location = locationRepository.findById(id)
-                .orElseThrow(()->new CustomException(ErrorCode.LOCATION_ERROR));
-        Long stationId = location.getStation().getId();
-        System.out.println(stationId);
+        // 대기질 정보 불러오기
+       List<AirQualityData> airQualityDataList = getAirQualityData(id);
 
-        // 해당 관측소 대기질 정보 조회
-        Optional<AirQualityData> airQuality = airQualityDataRepository.findById(stationId);
-
-        // 대기질 정보가 존재하지 않을 경우
-        if (airQuality.isEmpty()) {
-            throw new CustomException(ErrorCode.AIR_INFO_NOT_FOUND);
-        }
+        AirQualityData airQuality = airQualityDataList.get(0); // 가장 최근 데이터
 
         AirQualityDto airQualityDto = new AirQualityDto();
-        airQualityDto.setId(airQuality.get().getId());
-        airQualityDto.setStation_name(airQuality.get().getStationName());
-        airQualityDto.setSo2(airQuality.get().getSo2());
-        airQualityDto.setCo(airQuality.get().getCo());
-        airQualityDto.setO3(airQuality.get().getO3());
-        airQualityDto.setNo2(airQuality.get().getNo2());
-        airQualityDto.setPm10(airQuality.get().getPm10());
-        airQualityDto.setPm25(airQuality.get().getPm25());
-        airQualityDto.setSo2Grade(airQuality.get().getSo2Grade());
-        airQualityDto.setCoGrade(airQuality.get().getCoGrade());
-        airQualityDto.setO3Grade(airQuality.get().getO3Grade());
-        airQualityDto.setNo2Grade(airQuality.get().getNo2Grade());
-        airQualityDto.setPm10Grade(airQuality.get().getPm10Grade());
-        airQualityDto.setPm25Grade(airQuality.get().getPm25Grade());
-        airQualityDto.setKhaiValue(airQuality.get().getKhaiValue());
-        airQualityDto.setKhaiGrade(airQuality.get().getKhaiGrade());
-        airQualityDto.setDataTime(airQuality.get().getDataTime());
+        airQualityDto.setId(airQuality.getId());
+        airQualityDto.setStation_name(airQuality.getStationName());
+        airQualityDto.setSo2(String.valueOf(airQuality.getSo2()));
+        airQualityDto.setCo(String.valueOf(airQuality.getCo()));
+        airQualityDto.setO3(String.valueOf(airQuality.getO3()));
+        airQualityDto.setNo2(String.valueOf(airQuality.getNo2()));
+        airQualityDto.setPm10(String.valueOf(airQuality.getPm10()));
+        airQualityDto.setPm25(String.valueOf(airQuality.getPm25()));
+        airQualityDto.setSo2Grade(String.valueOf(airQuality.getSo2Grade()));
+        airQualityDto.setCoGrade(String.valueOf(airQuality.getCoGrade()));
+        airQualityDto.setO3Grade(String.valueOf(airQuality.getO3Grade()));
+        airQualityDto.setNo2Grade(String.valueOf(airQuality.getNo2Grade()));
+        airQualityDto.setPm10Grade(String.valueOf(airQuality.getPm10Grade()));
+        airQualityDto.setPm25Grade(String.valueOf(airQuality.getPm25Grade()));
+        airQualityDto.setKhaiValue(String.valueOf(airQuality.getKhaiValue()));
+        airQualityDto.setKhaiGrade(String.valueOf(airQuality.getKhaiGrade()));
+        airQualityDto.setDataTime(airQuality.getDataTime());
 
         return airQualityDto;
     }
 
-    //TODO: DB에 시간대별 대기질 정보가 없음
     // 시간별 대기질 정보 조회
+    public List<AirQualityDto> getTimeAirQualityData(long id) {
+        // 대기질 정보 불러오기
+        List<AirQualityData> airQualityDataList = getAirQualityData(id);
+
+        // List<AirQualityDto>로 변환
+        List<AirQualityDto> airQualityDtoList = airQualityDataList.stream().map(airQuality -> {
+            AirQualityDto airQualityDto = new AirQualityDto();
+            airQualityDto.setId(airQuality.getId());
+            airQualityDto.setStation_name(airQuality.getStationName());
+            airQualityDto.setSo2(String.valueOf(airQuality.getSo2()));
+            airQualityDto.setCo(String.valueOf(airQuality.getCo()));
+            airQualityDto.setO3(String.valueOf(airQuality.getO3()));
+            airQualityDto.setNo2(String.valueOf(airQuality.getNo2()));
+            airQualityDto.setPm10(String.valueOf(airQuality.getPm10()));
+            airQualityDto.setPm25(String.valueOf(airQuality.getPm25()));
+            airQualityDto.setSo2Grade(String.valueOf(airQuality.getSo2Grade()));
+            airQualityDto.setCoGrade(String.valueOf(airQuality.getCoGrade()));
+            airQualityDto.setO3Grade(String.valueOf(airQuality.getO3Grade()));
+            airQualityDto.setNo2Grade(String.valueOf(airQuality.getNo2Grade()));
+            airQualityDto.setPm10Grade(String.valueOf(airQuality.getPm10Grade()));
+            airQualityDto.setPm25Grade(String.valueOf(airQuality.getPm25Grade()));
+            airQualityDto.setKhaiValue(String.valueOf(airQuality.getKhaiValue()));
+            airQualityDto.setKhaiGrade(String.valueOf(airQuality.getKhaiGrade()));
+            airQualityDto.setDataTime(airQuality.getDataTime());
+            return airQualityDto;
+        }).collect(Collectors.toList());
+
+        return airQualityDtoList;
+    }
 
 
     // 대기질 예측 이미지 조회
@@ -111,5 +132,31 @@ public class AirQualityService {
         return airPollutionImagesDto;
     }
 
+    public List<AirQualityData> getAirQualityData(long id) {
+        // 주소 id로 관측소 id 가져오기
+        Locations location = locationRepository.findById(id)
+                .orElseThrow(()->new CustomException(ErrorCode.LOCATION_ERROR));
+        Long stationId = location.getStation().getId();
+        System.out.println(stationId);
 
+        // 관측소명 가져오기
+        AirQualityStations station = airQualityStationRepository.findById(stationId)
+                .orElseThrow(()->new CustomException(ErrorCode.STATION_ERROR));
+        String stationName = station.getStationName();
+        System.out.println("Station Name: " + stationName);
+
+        // "0" 날짜 값을 NOW()로 업데이트
+        airQualityDataRepository.updateZeroDateValues(stationName);
+
+        // 해당 관측소 대기질 정보 조회
+        List<AirQualityData> airQualityDataList = airQualityDataRepository.findByStationName(stationName);
+        System.out.println(airQualityDataList);
+
+        // 대기질 정보가 존재하지 않을 경우
+        if (airQualityDataList.isEmpty()) {
+            throw new CustomException(ErrorCode.AIR_INFO_NOT_FOUND);
+        }
+
+        return airQualityDataList;
+    }
 }

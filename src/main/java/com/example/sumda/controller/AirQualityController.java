@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/air")
 @RequiredArgsConstructor
@@ -35,13 +37,17 @@ public class AirQualityController {
         }
     }
 
-    //TODO: DB에 시간대별 대기질 정보가 없음
     // 시간별 대기질 정보 조회
-//    @GetMapping("/time")
-//    public ResponseEntity<?> getTimeAirInfoData(@RequestParam("id") Long id) {
-//
-//    }
+    @GetMapping("/time")
+    public ResponseEntity<?> getTimeAirInfoData(@RequestParam("id") Long id) {
 
+        List<AirQualityDto> airQualityDtoList = airQualityService.getTimeAirQualityData(id);
+        if(airQualityDtoList != null) {
+            return ResponseUtils.createResponse(HttpStatus.OK, "현재 대기질 정보 조회 완료", airQualityDtoList);
+        } else {
+            return ResponseUtils.createResponse(HttpStatus.BAD_REQUEST, "데이터가 없습니다.");
+        }
+    }
 
     // 대기질 예측 이미지 조회
     @GetMapping("/image")

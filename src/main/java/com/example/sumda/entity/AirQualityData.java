@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import javax.net.ssl.SSLSession;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
@@ -67,9 +68,6 @@ public class AirQualityData {
     private int khaiGrade;
 
     @Column(name = "data_time")
-    private Timestamp dataTime;
-
-    @Column(name = "recorded_at")
-    private Timestamp recorded_at;
+    private LocalDateTime dataTime;
 
 }
