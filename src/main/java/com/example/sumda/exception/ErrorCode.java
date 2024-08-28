@@ -23,6 +23,7 @@ public enum ErrorCode {
 
     // 위치 정보 오류
     LOCATION_ERROR(HttpStatus.BAD_REQUEST, "위치 정보가 잘못되었습니다"),
+    STATION_ERROR(HttpStatus.NOT_FOUND,"주변 관측소를 찾을 수 없습니다."),
 
     // 서버 오류
     SEVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,  "서버 오류"),
