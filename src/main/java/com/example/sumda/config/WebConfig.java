@@ -10,7 +10,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("https://sumda.co.kr") // 실제 배포된 도메인으로 변경
+                .allowedOrigins("https://sumda.co.kr", "http://localhost:3000") // 도메인 여러개
                 .allowedMethods("GET", "POST", "PUT", "DELETE")
                 .allowedHeaders("*")
                 .exposedHeaders("*")
