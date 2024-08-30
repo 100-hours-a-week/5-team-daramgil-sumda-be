@@ -21,6 +21,9 @@ public enum ErrorCode {
     AIR_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 위치의 대기 정보를 찾을 수 없습니다."),
     INVALID_PARAMETER(HttpStatus.BAD_REQUEST, "잘못된 url 요청입니다."),
 
+    // Squirrel
+    USER_SQUIRREL_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 유저의 다람쥐를 찾을 수 없습니다."),
+
     // 위치 정보 오류
     LOCATION_ERROR(HttpStatus.BAD_REQUEST, "위치 정보가 잘못되었습니다"),
     STATION_ERROR(HttpStatus.NOT_FOUND,"주변 관측소를 찾을 수 없습니다."),
