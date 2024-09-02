@@ -2,6 +2,7 @@ package com.example.sumda.service;
 
 import com.example.sumda.dto.squirrel.response.FeedSquirrelResponseDto;
 import com.example.sumda.dto.squirrel.response.NewSquirrelResponseDto;
+import com.example.sumda.dto.squirrel.response.SquirrelCollectionResponseDto;
 import com.example.sumda.dto.squirrel.response.UserSquirrelResponseDto;
 import com.example.sumda.entity.SquirrelType;
 import com.example.sumda.entity.User;
@@ -11,11 +12,13 @@ import com.example.sumda.exception.ErrorCode;
 import com.example.sumda.repository.SquirrelTypeRepository;
 import com.example.sumda.repository.UserRepository;
 import com.example.sumda.repository.UserSquirrelRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +49,7 @@ public class SquirrelService {
     }
 
     // 다람쥐한테 도토리 주기 (개수 유저가 지정)
+    @Transactional
     public FeedSquirrelResponseDto feedSquirrelOnAcorns(Long userId, int acorns) {
         Optional<UserSquirrel> optionalUserSquirrel = userSquirrelRepository.findByUserIdAndEndDateIsNull(userId);
 
@@ -65,7 +69,6 @@ public class SquirrelService {
         int possibleAcorns = 100 - userSquirrel.getFeed();
         if (acorns > possibleAcorns) {
             throw new CustomException(ErrorCode.OVER_FEEDING_ERROR);
-
         }
 
         // 다람쥐 종류
@@ -117,7 +120,6 @@ public class SquirrelService {
         return feedSquirrelDto;
     }
 
-
     // 새로운 다람쥐 분양 받기
     public NewSquirrelResponseDto getNewSquirrel(Long userId, String sqrType){
 
@@ -134,8 +136,6 @@ public class SquirrelService {
         UserSquirrel newSquirrel = new UserSquirrel();
         newSquirrel.setUserId(userId); // 유저 아이디
         newSquirrel.setSquTypeId(squirrelType); // 다람쥐 종류 id
-//        newSquirrel.setCreatedAt();
-//        newSquirrel.setStartDate(now());
 
         // 엔티티 내용 저장
         userSquirrelRepository.save(newSquirrel);
@@ -149,9 +149,27 @@ public class SquirrelService {
         dto.setFeed(checkNew.get().getFeed());
 
         return dto;
-
     }
 
-
     // 다람쥐 컬렉션
+    public List<SquirrelCollectionResponseDto> getSquirrelCollection(Long userId){
+
+        // 유저의 모든 다람쥐 중 독립날짜가 있는 다람쥐만 가져오기
+        List<UserSquirrel> userSquirrelList = userSquirrelRepository.findByUserIdAndEndDateIsNotNull(userId);
+
+        List<SquirrelCollectionResponseDto> squirrelCollectionList = userSquirrelList.stream()
+                .map(userSquirrel -> {
+                    String sqrType = userSquirrel.getSquTypeId().getSqrType();
+
+                    return new SquirrelCollectionResponseDto(
+                            sqrType,
+                            userSquirrel.getStartDate(),
+                            userSquirrel.getEndDate()
+                    );
+                })
+                .collect(Collectors.toList());
+
+        return squirrelCollectionList;
+    }
+
 }
