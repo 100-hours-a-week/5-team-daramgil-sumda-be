@@ -30,7 +30,7 @@ public class User {
     @Column(name = "user_email")
     private String userEmail;
 
-    @Column(name = "user_acorn")
+    @Column(name = "user_acorns")
     private int userAcorn;
 
     @Column(name = "created_at")

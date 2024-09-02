@@ -5,7 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @Entity
@@ -34,16 +38,19 @@ public class UserSquirrel {
     @Column(name = "feed")
     private int feed; // 도토리 급여 개수
 
-    @Column(name = "start_date")
-    private LocalDateTime startDate; // 다람쥐 배정 날짜
+    @CreationTimestamp
+    @Column(name = "start_date", nullable = false, updatable = false)
+    private Timestamp startDate; // 다람쥐 배정 날짜
 
     @Column(name = "end_date")
-    private LocalDateTime endDate; // 다람쥐 독립 날짜
+    private Timestamp endDate; // 다람쥐 독립 날짜
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Timestamp createdAt;
 
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private Timestamp updatedAt;
 
 }

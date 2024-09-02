@@ -14,6 +14,7 @@ import com.example.sumda.repository.UserSquirrelRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -133,6 +134,8 @@ public class SquirrelService {
         UserSquirrel newSquirrel = new UserSquirrel();
         newSquirrel.setUserId(userId); // 유저 아이디
         newSquirrel.setSquTypeId(squirrelType); // 다람쥐 종류 id
+//        newSquirrel.setCreatedAt();
+//        newSquirrel.setStartDate(now());
 
         // 엔티티 내용 저장
         userSquirrelRepository.save(newSquirrel);
