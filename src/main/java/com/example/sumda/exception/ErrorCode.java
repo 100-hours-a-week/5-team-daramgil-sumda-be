@@ -23,6 +23,7 @@ public enum ErrorCode {
 
     // Squirrel
     USER_SQUIRREL_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 유저의 다람쥐를 찾을 수 없습니다."),
+    OVER_FEEDING_ERROR(HttpStatus.BAD_REQUEST,"지급하려는 도토리 개수가 너무 많습니다."),
 
     // 위치 정보 오류
     LOCATION_ERROR(HttpStatus.BAD_REQUEST, "위치 정보가 잘못되었습니다"),

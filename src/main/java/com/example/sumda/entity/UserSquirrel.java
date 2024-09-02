@@ -18,6 +18,7 @@ public class UserSquirrel {
 
     @Id
     @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id; // 다람쥐 id
 
     @Column(name = "user_id")

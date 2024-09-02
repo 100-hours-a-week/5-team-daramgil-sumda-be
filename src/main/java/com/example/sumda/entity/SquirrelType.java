@@ -19,7 +19,7 @@ public class SquirrelType {
 
     @Id
     @Column(name = "id")
-    private long id;
+    private Long id;
 
     @Column(name = "sqr_type")
     private String sqrType;

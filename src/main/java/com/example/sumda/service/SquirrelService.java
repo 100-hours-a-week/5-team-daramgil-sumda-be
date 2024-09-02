@@ -1,17 +1,19 @@
 package com.example.sumda.service;
 
 import com.example.sumda.dto.squirrel.response.FeedSquirrelResponseDto;
+import com.example.sumda.dto.squirrel.response.NewSquirrelResponseDto;
 import com.example.sumda.dto.squirrel.response.UserSquirrelResponseDto;
 import com.example.sumda.entity.SquirrelType;
 import com.example.sumda.entity.User;
 import com.example.sumda.entity.UserSquirrel;
+import com.example.sumda.exception.CustomException;
+import com.example.sumda.exception.ErrorCode;
 import com.example.sumda.repository.SquirrelTypeRepository;
 import com.example.sumda.repository.UserRepository;
 import com.example.sumda.repository.UserSquirrelRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -57,6 +59,13 @@ public class SquirrelService {
 
         UserSquirrel userSquirrel = optionalUserSquirrel.get();
         User user = optionalUser.get();
+
+        // 도토리 지급 시 100을 초과하는 경우
+        int possibleAcorns = 100 - userSquirrel.getFeed();
+        if (acorns > possibleAcorns) {
+            throw new CustomException(ErrorCode.OVER_FEEDING_ERROR);
+
+        }
 
         // 다람쥐 종류
         SquirrelType squTypeId = userSquirrel.getSquTypeId();
@@ -109,6 +118,37 @@ public class SquirrelService {
 
 
     // 새로운 다람쥐 분양 받기
+    public NewSquirrelResponseDto getNewSquirrel(Long userId, String sqrType){
+
+        // 다람쥐 종류 id 확인
+        Optional<SquirrelType> optionalSquirrelType = squirrelTypeRepository.findBySqrType(sqrType);
+
+        if (optionalSquirrelType.isEmpty()) {
+            throw new IllegalArgumentException("유효하지 않은 다람쥐 종류입니다.");
+        }
+
+        SquirrelType squirrelType = optionalSquirrelType.get();
+
+        // 엔티티 설정
+        UserSquirrel newSquirrel = new UserSquirrel();
+        newSquirrel.setUserId(userId); // 유저 아이디
+        newSquirrel.setSquTypeId(squirrelType); // 다람쥐 종류 id
+
+        // 엔티티 내용 저장
+        userSquirrelRepository.save(newSquirrel);
+
+        // 저장된 내용 조회
+        Optional<UserSquirrel> checkNew = userSquirrelRepository.findByUserIdAndEndDateIsNull(userId);
+
+        NewSquirrelResponseDto dto = new NewSquirrelResponseDto();
+        dto.setType(checkNew.get().getSquTypeId().getSqrType());
+        dto.setLevel(checkNew.get().getLevel());
+        dto.setFeed(checkNew.get().getFeed());
+
+        return dto;
+
+    }
+
 
     // 다람쥐 컬렉션
 }
