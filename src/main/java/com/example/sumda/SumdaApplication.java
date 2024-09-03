@@ -1,5 +1,7 @@
 package com.example.sumda;
 
+import io.sentry.Sentry;
+import io.sentry.spring.jakarta.EnableSentry;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -8,9 +10,14 @@ import io.github.cdimascio.dotenv.Dotenv;
 public class SumdaApplication {
 
 	public static void main(String[] args) {
-		Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
-		System.out.println("KAKAO_CLIENT_ID: " + dotenv.get("SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID"));
-		SpringApplication.run(SumdaApplication.class, args);
-	}
 
+		SpringApplication.run(SumdaApplication.class, args);
+
+		// Sentry 테스트 코드
+		try {
+			throw new Exception("This is a test exception for Sentry");
+		} catch (Exception e) {
+			Sentry.captureException(e);
+		}
+	}
 }
