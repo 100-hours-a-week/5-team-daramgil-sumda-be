@@ -32,11 +32,12 @@ spring:
       client:
         registration:
           kakao:
-            client_id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID:default_client_id}
+            client_id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID}
+            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_SECRET}
             provider: kakao
             client-authentication-method: POST
             authorization-grant-type: authorization_code
-            redirect-uri: "http://localhost:3000/auth"
+            redirect-uri: "http://localhost:8080/oauth"
             scope: profile_nickname, profile_image, account_email
             client-name: Kakao
 
