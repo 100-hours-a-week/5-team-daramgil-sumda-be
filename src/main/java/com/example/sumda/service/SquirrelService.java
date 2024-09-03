@@ -16,6 +16,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -131,6 +133,16 @@ public class SquirrelService {
         }
 
         SquirrelType squirrelType = optionalSquirrelType.get();
+
+        Optional<UserSquirrel> checkUsersquirrel = userSquirrelRepository.findByUserIdAndEndDateIsNull(userId);
+
+        // 도토리를 100개 먹었는데 아직 독립하지 않은 다람쥐가 있다면
+        if (checkUsersquirrel.isPresent()){
+            // 찾은 다람쥐의 end_date 값에 now() 저장
+            UserSquirrel preSquirrel = checkUsersquirrel.get(); // 기존 객체 사용
+            preSquirrel.setEndDate(Timestamp.valueOf(LocalDateTime.now())); // 현재 시간을 Timestamp로 변환하여 설정
+            userSquirrelRepository.save(preSquirrel); // 저장
+        }
 
         // 엔티티 설정
         UserSquirrel newSquirrel = new UserSquirrel();
