@@ -76,6 +76,7 @@ jobs:
             echo 'AIR_PUBLIC_API_KEY=${{ secrets.AIR_PUBLIC_API_KEY }}' >> /home/${{ secrets.EC2_USER }}/.env
             echo 'WEATHER_PUBLIC_API_KEY=${{ secrets.WEATHER_PUBLIC_API_KEY }}' >> /home/${{ secrets.EC2_USER }}/.env
             echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN }}' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}' >> /home/${{ secrets.EC2_USER }}/.env
           EOF
 
       - name: Load Docker image and run on EC2
