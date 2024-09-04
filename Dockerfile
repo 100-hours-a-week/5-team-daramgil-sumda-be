@@ -4,6 +4,9 @@ FROM gradle:jdk17
 # SENTRY_AUTH_TOKEN을 빌드 시 전달받음
 ARG SENTRY_AUTH_TOKEN
 
+# SENTRY_AUTH_TOKEN을 환경 변수로 설정
+ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
+
 # /app 디렉토리를 작업할 공간으로 설정합니다.
 WORKDIR /app
 
@@ -12,9 +15,6 @@ COPY . .
 
 # Gradle 빌드 파일에 실행 권한을 부여하고, 프로젝트를 빌드합니다.
 RUN chmod +x gradlew
-
-# SENTRY_AUTH_TOKEN을 환경 변수로 설정
-ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
 
 RUN ./gradlew clean build
 
