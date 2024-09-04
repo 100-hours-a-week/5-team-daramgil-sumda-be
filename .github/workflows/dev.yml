@@ -28,7 +28,9 @@ jobs:
         run: ls -al build/libs
 
       - name: Build Docker image
-        run: docker build -t backend:latest .
+        run: docker build --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} -t backend:latest .
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Save Docker image to archive
         run: docker save backend:latest -o backend.tar
@@ -74,12 +76,12 @@ jobs:
             echo 'AIR_PUBLIC_API_KEY=${{ secrets.AIR_PUBLIC_API_KEY }}' >> /home/${{ secrets.EC2_USER }}/.env
             echo 'WEATHER_PUBLIC_API_KEY=${{ secrets.WEATHER_PUBLIC_API_KEY }}' >> /home/${{ secrets.EC2_USER }}/.env
             echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN }}' >> /home/${{ secrets.EC2_USER }}/.env
+          EOF
 
       - name: Load Docker image and run on EC2
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_DEV_HOST }} << 'EOF'
             docker load -i /home/${{ secrets.EC2_USER }}/backend.tar
-            docker ps
             docker stop sumda-be || true
             docker rm sumda-be || true
             docker run -d -p 8080:8080 --name sumda-be --env-file /home/${{ secrets.EC2_USER }}/.env backend:latest
