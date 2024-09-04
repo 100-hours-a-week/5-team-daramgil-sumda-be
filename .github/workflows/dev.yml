@@ -28,7 +28,7 @@ jobs:
         run: ls -al build/libs
 
       - name: Build Docker image
-        run: docker build -t backend:latest .
+        run: docker build --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} -t backend:latest .
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
