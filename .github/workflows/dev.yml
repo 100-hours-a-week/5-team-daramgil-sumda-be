@@ -16,6 +16,11 @@ jobs:
           distribution: 'corretto'
           java-version: '17'
 
+      - name: Add user to Docker group
+        run: |
+          sudo usermod -aG docker $USER
+          newgrp docker    
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
@@ -35,14 +40,14 @@ jobs:
       - name: Build Docker image
         run: |
           set -x
-          docker build --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} --progress=plain -t ghcr.io/${{ github.repository_owner }}/sumda-fe-dev:latest .
+          docker build --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} --progress=plain -t ghcr.io/${{ github.repository_owner }}/sumda-be-dev:latest .
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Push Docker image to GHCR
         run: |
           set -x
-          docker push ghcr.io/${{ github.repository_owner }}/sumda-fe-dev:latest
+          docker push ghcr.io/${{ github.repository_owner }}/sumda-be-dev:latest
 
   deploy:
     runs-on: ubuntu-latest
@@ -85,5 +90,5 @@ jobs:
             docker pull ghcr.io/${{ github.repository_owner }}/sumda-fe-dev:latest
             docker stop sumda-be || true
             docker rm sumda-be || true
-            docker run -d -p 8080:8080 --name sumda-be --env-file /home/${{ secrets.EC2_USER }}/.env ghcr.io/${{ github.repository_owner }}/sumda-fe-dev:latest
+            docker run -d -p 8080:8080 --name sumda-be --env-file /home/${{ secrets.EC2_USER }}/.env ghcr.io/${{ github.repository_owner }}/sumda-be-dev:latest
           EOF
