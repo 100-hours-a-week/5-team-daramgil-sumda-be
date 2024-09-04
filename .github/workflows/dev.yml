@@ -28,7 +28,7 @@ jobs:
         run: ls -al build/libs
 
       - name: Build Docker image
-        run: docker build -t backend:latest .
+        run: docker build --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} -t backend:latest .
 
       - name: Save Docker image to archive
         run: docker save backend:latest -o backend.tar
@@ -67,13 +67,16 @@ jobs:
         run: |
           scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa backend.tar ${{ secrets.EC2_USER }}@${{ secrets.EC2_DEV_HOST }}:/home/${{ secrets.EC2_USER }}/backend.tar
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_DEV_HOST }} << 'EOF'
-            echo 'DB_URL=${{ secrets.DB_URL }}' > /home/${{ secrets.EC2_USER }}/.env
-            echo 'DB_USERNAME=${{ secrets.DB_USERNAME }}' >> /home/${{ secrets.EC2_USER }}/.env
-            echo 'DB_PASSWORD=${{ secrets.DB_PASSWORD }}' >> /home/${{ secrets.EC2_USER }}/.env
-            echo 'OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}' >> /home/${{ secrets.EC2_USER }}/.env
-            echo 'AIR_PUBLIC_API_KEY=${{ secrets.AIR_PUBLIC_API_KEY }}' >> /home/${{ secrets.EC2_USER }}/.env
-            echo 'WEATHER_PUBLIC_API_KEY=${{ secrets.WEATHER_PUBLIC_API_KEY }}' >> /home/${{ secrets.EC2_USER }}/.env
-            echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN }}' >> /home/${{ secrets.EC2_USER }}/.env
+            cat <<EOT > /home/${{ secrets.EC2_USER }}/.env
+            DB_URL=${{ secrets.DB_URL }}
+            DB_USERNAME=${{ secrets.DB_USERNAME }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+            AIR_PUBLIC_API_KEY=${{ secrets.AIR_PUBLIC_API_KEY }}
+            WEATHER_PUBLIC_API_KEY=${{ secrets.WEATHER_PUBLIC_API_KEY }}
+            SENTRY_DSN=${{ secrets.SENTRY_DSN }}
+            EOT
+          EOF
 
       - name: Load Docker image and run on EC2
         run: |
