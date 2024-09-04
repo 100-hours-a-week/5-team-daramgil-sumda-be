@@ -1,12 +1,6 @@
 # gradle:jdk17이라는 기본 이미지를 사용하여 작업을 시작합니다.
 FROM gradle:jdk17
 
-# 빌드 시 전달된 SENTRY_AUTH_TOKEN을 받습니다.
-ARG SENTRY_AUTH_TOKEN
-
-# 환경 변수를 설정
-ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
-
 # /app 디렉토리를 작업할 공간으로 설정합니다.
 WORKDIR /app
 
