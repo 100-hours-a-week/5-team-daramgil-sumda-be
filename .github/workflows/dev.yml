@@ -21,15 +21,14 @@ jobs:
 
       - name: Build with Gradle
         run: ./gradlew clean build
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_LOG_LEVEL: debug
 
       - name: List build directory
         run: ls -al build/libs
 
       - name: Build Docker image
         run: docker build --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} -t backend:latest .
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Save Docker image to archive
         run: docker save backend:latest -o backend.tar
