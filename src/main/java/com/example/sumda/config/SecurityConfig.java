@@ -40,8 +40,7 @@ public class SecurityConfig {
                 ) // 세션 사용하지 않음
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/img/**","/images/**").permitAll()  // 이미지 경로 허용
-                        .requestMatchers("/").permitAll()
-                        .requestMatchers("/api/**").authenticated()
+                        .requestMatchers("/**").permitAll()
                 )
                 .oauth2Login((oauth2) -> oauth2
                         .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
