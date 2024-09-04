@@ -15,6 +15,7 @@ public class SentryConfig {
     @PostConstruct
     public void init() {
         Sentry.init(options -> options.setDsn(sentryDsn));
+        System.out.println(sentryDsn);
     }
 
 }
