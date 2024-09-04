@@ -68,20 +68,20 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_DEV_HOST }} echo "SSH connection successful"
 
-#      - name: Create .env file on EC2
-#        run: |
-#          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_DEV_HOST }} << 'EOF'
-#            echo 'DB_URL=${{ secrets.DB_URL }}' > /home/${{ secrets.EC2_USER }}/.env
-#            echo 'DB_USERNAME=${{ secrets.DB_USERNAME }}' >> /home/${{ secrets.EC2_USER }}/.env
-#            echo 'DB_PASSWORD=${{ secrets.DB_PASSWORD }}' >> /home/${{ secrets.EC2_USER }}/.env
-#            echo 'OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}' >> /home/${{ secrets.EC2_USER }}/.env
-#            echo 'AIR_PUBLIC_API_KEY=${{ secrets.AIR_PUBLIC_API_KEY }}' >> /home/${{ secrets.EC2_USER }}/.env
-#            echo 'WEATHER_PUBLIC_API_KEY=${{ secrets.WEATHER_PUBLIC_API_KEY }}' >> /home/${{ secrets.EC2_USER }}/.env
-#            echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN }}' >> /home/${{ secrets.EC2_USER }}/.env
-#            echo 'SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}' >> /home/${{ secrets.EC2_USER }}/.env
-#            echo 'SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID }}' >> /home/${{ secrets.EC2_USER }}/.env
-#            echo 'JWT_SECRET=${{ secrets.JWT_SECRET }}' >> /home/${{ secrets.EC2_USER }}/.env
-#          EOF
+      - name: Create .env file on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_DEV_HOST }} << 'EOF'
+            echo 'DB_URL=${{ secrets.DB_URL }}' > /home/${{ secrets.EC2_USER }}/.env
+            echo 'DB_USERNAME=${{ secrets.DB_USERNAME }}' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'DB_PASSWORD=${{ secrets.DB_PASSWORD }}' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'AIR_PUBLIC_API_KEY=${{ secrets.AIR_PUBLIC_API_KEY }}' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'WEATHER_PUBLIC_API_KEY=${{ secrets.WEATHER_PUBLIC_API_KEY }}' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN }}' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID }}' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'JWT_SECRET=${{ secrets.JWT_SECRET }}' >> /home/${{ secrets.EC2_USER }}/.env
+          EOF
 
       - name: Pull Docker image and run on EC2
         run: |
