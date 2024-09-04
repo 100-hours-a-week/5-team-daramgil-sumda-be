@@ -72,7 +72,13 @@ dependencies {
 	implementation 'io.github.cdimascio:dotenv-java:2.2.0'
 
 	// 카카오 로그인에 필요한 의존성 주입
-//	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+	// jwt
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+	implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
+	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
 
 	//Redis Config
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
