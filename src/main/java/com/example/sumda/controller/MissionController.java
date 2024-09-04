@@ -1,5 +1,6 @@
 package com.example.sumda.controller;
 
+
 import com.example.sumda.dto.mission.response.AttendanceMissionResponseDto;
 import com.example.sumda.dto.mission.response.DayMissionResponseDto;
 import com.example.sumda.exception.CustomException;
@@ -23,7 +24,7 @@ public class MissionController {
 
     // 일일 미션 현황 불러오기
     @GetMapping("/day")
-    public ResponseEntity<?> getDayMissions() {
+    public ResponseEntity<?> getDayMissions(){
 
         // TODO: jwt에서 userId 가져오기
         Long userId = 1L;
