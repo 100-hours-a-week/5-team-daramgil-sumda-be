@@ -12,8 +12,11 @@ RUN chmod +x gradlew
 
 RUN ./gradlew clean build
 
-# 8080번 포트를 외부에 열어줍니다.
-EXPOSE 8080
+# Blue-Green 배포를 위한 포트를 환경변수로 설정합니다.
+ARG APP_PORT=8080
+
+# ${APP_PORT} 변수를 외부에 열어줍니다.
+EXPOSE ${APP_PORT}
 
 ## 애플리케이션이 실행될 때 사용할 환경 변수들을 설정합니다.
 #ENV DB_URL=${DB_URL}
