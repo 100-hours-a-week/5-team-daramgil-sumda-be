@@ -36,4 +36,8 @@ public class User {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    public static User createUser(Long id, String userName, String userEmail) {
+
+        return new User(id, userName, userEmail, 0, Timestamp.valueOf(LocalDateTime.now()));
+    }
 }

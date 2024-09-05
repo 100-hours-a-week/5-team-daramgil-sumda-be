@@ -26,6 +26,9 @@ public enum ErrorCode {
     OVER_FEEDING_ERROR(HttpStatus.BAD_REQUEST,"지급하려는 도토리 개수가 너무 많습니다."),
     SQUIRREL_COLLECTION_EMPTY(HttpStatus.NOT_FOUND,"독립 시킨 다람쥐가 없습니다."),
 
+    // mission
+    DAY_MISSION_INFO_NOT_FOUND(HttpStatus.NOT_FOUND,"완료한 일일미션이 없습니다."),
+
     // 위치 정보 오류
     LOCATION_ERROR(HttpStatus.BAD_REQUEST, "위치 정보가 잘못되었습니다"),
     STATION_ERROR(HttpStatus.NOT_FOUND,"주변 관측소를 찾을 수 없습니다."),
