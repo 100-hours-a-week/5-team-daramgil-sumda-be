@@ -1,9 +1,7 @@
 package com.example.sumda.controller;
 
-import com.example.sumda.dto.mission.response.AttendanceMissionResponseDto;
+import com.example.sumda.dto.mission.response.MissionResponseDto;
 import com.example.sumda.dto.mission.response.DayMissionResponseDto;
-import com.example.sumda.exception.CustomException;
-import com.example.sumda.exception.ErrorCode;
 import com.example.sumda.service.MissionService;
 import com.example.sumda.utils.ResponseUtils;
 import lombok.RequiredArgsConstructor;
@@ -37,12 +35,12 @@ public class MissionController {
 
     // 일일 미션 출석 완료 처리
     @PostMapping("/attendance")
-    public ResponseEntity<?> AttendanceSuccess() {
+    public ResponseEntity<?> attendanceSuccess() {
         // TODO: jwt에서 userId 가져오기
         Long userId = 1L;
 
         // 출석 완료 처리
-        AttendanceMissionResponseDto dto = missionService.attendanceMission(userId);
+        MissionResponseDto dto = missionService.attendanceMission(userId);
 
         if(dto.getStatus() == "ERROR"){
             return ResponseUtils.createResponse(HttpStatus.BAD_REQUEST,"이미 완료된 미션입니다.", dto);
@@ -52,9 +50,51 @@ public class MissionController {
     }
 
     // 일일 미션 OX퀴즈 참여 완료 처리
+    @PostMapping("/quiz")
+    public ResponseEntity<?> quizSuccess() {
+        // TODO: jwt에서 userId 가져오기
+        Long userId = 1L;
+
+        // 출석 완료 처리
+        MissionResponseDto dto = missionService.quizMission(userId);
+
+        if(dto.getStatus() == "ERROR"){
+            return ResponseUtils.createResponse(HttpStatus.BAD_REQUEST,"이미 완료된 미션입니다.", dto);
+        }
+
+        return ResponseUtils.createResponse(HttpStatus.OK,"OX퀴즈 미션을 완료했습니다. 도토리 1개가 지급됩니다.", dto);
+    }
 
     // 일일 미션 대기오염조회 완료 처리
+    @PostMapping("/air")
+    public ResponseEntity<?> checkAirSuccess() {
+        // TODO: jwt에서 userId 가져오기
+        Long userId = 1L;
+
+        // 출석 완료 처리
+        MissionResponseDto dto = missionService.checkAirMission(userId);
+
+        if(dto.getStatus() == "ERROR"){
+            return ResponseUtils.createResponse(HttpStatus.BAD_REQUEST,"이미 완료된 미션입니다.", dto);
+        }
+
+        return ResponseUtils.createResponse(HttpStatus.OK,"대기오염조회 미션을 완료했습니다. 도토리 1개가 지급됩니다.", dto);
+    }
 
     // 일일 미션 다람쥐와 대화하기 완료 처리
+    @PostMapping("/talk")
+    public ResponseEntity<?> talkWithSquirrelSuccess() {
+        // TODO: jwt에서 userId 가져오기
+        Long userId = 1L;
+
+        // 출석 완료 처리
+        MissionResponseDto dto = missionService.talkWithSquirrelMission(userId);
+
+        if(dto.getStatus() == "ERROR"){
+            return ResponseUtils.createResponse(HttpStatus.BAD_REQUEST,"이미 완료된 미션입니다.", dto);
+        }
+
+        return ResponseUtils.createResponse(HttpStatus.OK,"다람쥐와 대화하기 미션을 완료했습니다. 도토리 1개가 지급됩니다.", dto);
+    }
 
 }
