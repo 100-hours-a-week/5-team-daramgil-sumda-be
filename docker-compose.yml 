@@ -1,19 +1,37 @@
 version: "3.8"
 services:
   be-blue:
-    image: backend-blue:latest
+    image: ghcr.io/kwongiyeon/5-team-daramgil-sumda-be:latest
     ports:
-      - "8080:8080"
+      - "8081:8080"
     environment:
-      - APP_PORT=8080
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AIR_PUBLIC_API_KEY=${AIR_PUBLIC_API_KEY}
+      - WEATHER_PUBLIC_API_KEY=${WEATHER_PUBLIC_API_KEY}
+      - SENTRY_DSN=${SENTRY_DSN}
+      - SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID=${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID}
+      - JWT_SECRET=${JWT_SECRET}
     container_name: be-blue
     restart: always
 
   be-green:
-    image: backend-green:latest
+    image: ghcr.io/kwongiyeon/5-team-daramgil-sumda-be:latest
     ports:
-      - "8081:8081"
+      - "8082:8080"
     environment:
-      - APP_PORT=8081
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AIR_PUBLIC_API_KEY=${AIR_PUBLIC_API_KEY}
+      - WEATHER_PUBLIC_API_KEY=${WEATHER_PUBLIC_API_KEY}
+      - SENTRY_DSN=${SENTRY_DSN}
+      - SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID=${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID}
+      - JWT_SECRET=${JWT_SECRET}
     container_name: be-green
     restart: always
