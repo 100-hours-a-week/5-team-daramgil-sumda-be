@@ -5,8 +5,42 @@ on:
     branches: [ develop ]
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew clean build
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+      - name: List build directory
+        run: ls -al build/libs
+
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+
+      - name: Build Docker image
+        run: docker build --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} -t ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be:latest .
+
+      - name: Push Docker image to GitHub Container Registry
+        run: docker push ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be:latest
+
   deploy:
     runs-on: ubuntu-latest
+    needs: build
 
     steps:
       - name: Setup SSH key
@@ -19,16 +53,12 @@ jobs:
         run: |
           ssh-keyscan -H ${{ secrets.EC2_BACK_BLUE }} >> ~/.ssh/known_hosts
 
-      - name: Verify SSH connection
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_BACK_BLUE }} echo "SSH connection successful"
-
       - name: Send deploy.sh
-        uses: 100-hours-a-week/5-team-daramgil-sumda-be@develop
+        uses: appleboy/scp-action@master
         with:
           username: ubuntu
           host: ${{ secrets.EC2_BACK_BLUE }}
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          key: ${{ secrets.EC2_KEY }}
           port: 22
           source: "./deploy.sh"
           target: "/home/ubuntu/"
@@ -45,7 +75,7 @@ jobs:
               docker pull ghcr.io/kwongiyeon/5-team-daramgil-sumda-be:latest
               docker stop be-blue || true
               docker rm be-blue || true
-              docker run -d -p 8081:8081 --name be-green --env-file /home/${{ secrets.EC2_USER }}/.env ghcr.io/kwongiyeon/5-team-daramgil-sumda-be:latest
+              docker run -d -p 8082:8080 --name be-green --env-file /home/${{ secrets.EC2_USER }}/.env ghcr.io/kwongiyeon/5-team-daramgil-sumda-be:latest
           
               # Nginx 설정 변경 후 재시작
               sudo cp /etc/nginx/nginx.green.conf /etc/nginx/nginx.conf
@@ -57,7 +87,7 @@ jobs:
               docker pull ghcr.io/kwongiyeon/5-team-daramgil-sumda-be:latest
               docker stop be-green || true
               docker rm be-green || true
-              docker run -d -p 8080:8080 --name be-blue --env-file /home/${{ secrets.EC2_USER }}/.env ghcr.io/kwongiyeon/5-team-daramgil-sumda-be:latest
+              docker run -d -p 8081:8080 --name be-blue --env-file /home/${{ secrets.EC2_USER }}/.env ghcr.io/kwongiyeon/5-team-daramgil-sumda-be:latest
           
               # Nginx 설정 변경 후 재시작
               sudo cp /etc/nginx/nginx.blue.conf /etc/nginx/nginx.conf
