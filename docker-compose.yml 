@@ -1,4 +1,3 @@
-version: "3.8"
 services:
   be-blue:
     image: ghcr.io/kwongiyeon/5-team-daramgil-sumda-be:latest
