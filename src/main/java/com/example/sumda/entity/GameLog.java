@@ -19,11 +19,11 @@ public class GameLog {
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private User userId;
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "game_type_id", referencedColumnName = "id")
-    private GameType gameTypeId; // 게임 종류 id
+    private GameType gameType; // 게임 종류 id
 
     @Column(name = "game_name")
     private String gameName; // 게임명

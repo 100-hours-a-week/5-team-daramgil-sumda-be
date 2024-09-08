@@ -31,6 +31,7 @@ public enum ErrorCode {
 
     //game
     Game_NOT_FOUND(HttpStatus.NOT_FOUND,"게임 종류를 찾을 수 없습니다."),
+    Game_LOG_NOT_FOUND(HttpStatus.NOT_FOUND,"게임 로그를 찾을 수 없습니다."),
 
     // 위치 정보 오류
     LOCATION_ERROR(HttpStatus.BAD_REQUEST, "위치 정보가 잘못되었습니다"),
