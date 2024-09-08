@@ -29,6 +29,9 @@ public enum ErrorCode {
     // mission
     DAY_MISSION_INFO_NOT_FOUND(HttpStatus.NOT_FOUND,"완료한 일일미션이 없습니다."),
 
+    //game
+    Game_NOT_FOUND(HttpStatus.NOT_FOUND,"게임 종류를 찾을 수 없습니다."),
+
     // 위치 정보 오류
     LOCATION_ERROR(HttpStatus.BAD_REQUEST, "위치 정보가 잘못되었습니다"),
     STATION_ERROR(HttpStatus.NOT_FOUND,"주변 관측소를 찾을 수 없습니다."),
