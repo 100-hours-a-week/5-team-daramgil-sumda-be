@@ -54,7 +54,7 @@ jobs:
           script: |
             cd /home/ubuntu/
             chmod +x ./deploy.sh
-            ./deploy.sh
+            ./deploy.sh /home/ubuntu/project/docker-compose.yml
 
       # 7. 컨테이너 상태 확인
       - name: Check Docker containers
