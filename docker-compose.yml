@@ -1,6 +1,7 @@
 services:
   be-blue:
     image: ghcr.io/kwongiyeon/5-team-daramgil-sumda-be:latest
+    platform: linux/amd64
     ports:
       - "8081:8080"
     environment:
@@ -15,12 +16,13 @@ services:
       - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID=${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID}
       - JWT_SECRET=${JWT_SECRET}
     env_file:
-      - /home/ubuntu/.env
+      - /home/ubuntu
     container_name: be-blue
     restart: always
 
   be-green:
     image: ghcr.io/kwongiyeon/5-team-daramgil-sumda-be:latest
+    platform: linux/amd64
     ports:
       - "8082:8080"
     environment:
@@ -35,6 +37,6 @@ services:
       - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID=${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID}
       - JWT_SECRET=${JWT_SECRET}
     env_file:
-      - /home/ubuntu/.env
+      - /home/ubuntu
     container_name: be-green
     restart: always
