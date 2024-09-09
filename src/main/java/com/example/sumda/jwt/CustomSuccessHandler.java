@@ -45,7 +45,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         response.setCharacterEncoding("UTF-8");
 
         // 토큰을 JSON 형태로 응답의 body에 작성
-        String jsonResponse = "{\"accessToken\":\"" + token + "\"}";
+        String jsonResponse = "{\"Token\":\"" + token + "\"}";
         response.getWriter().write(jsonResponse);
     }
 
