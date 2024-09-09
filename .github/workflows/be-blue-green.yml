@@ -75,8 +75,7 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             cd /home/ubuntu/
-            chmod +x ./deploy.sh
-            ./deploy.sh /home/ubuntu/docker-compose.yml
+            docker-compose --env-file /home/ubuntu/.env up -d
 
       # 9. 컨테이너 상태 확인
       - name: Check Docker containers
