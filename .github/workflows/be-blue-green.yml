@@ -24,9 +24,6 @@ jobs:
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: cd github repository
-        run: cd 5-team-daramgil-sumda-be
-
       # 5. .env 파일 준비
       - name: Create .env file
         run: |
