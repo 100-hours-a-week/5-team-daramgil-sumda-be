@@ -43,15 +43,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 6. .env 파일을 서버로 복사
-      - name: Copy .env file to server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.EC2_BACK_BLUE }}
-          username: ubuntu
-          key: ${{ secrets.EC2_KEY }}
-          source: "./.env"
-          target: "/home/ubuntu/.env"
+#      # 6. .env 파일을 서버로 복사
+#      - name: Copy .env file to server
+#        uses: appleboy/scp-action@master
+#        with:
+#          host: ${{ secrets.EC2_BACK_BLUE }}
+#          username: ubuntu
+#          key: ${{ secrets.EC2_KEY }}
+#          source: "./.env"
+#          target: "/home/ubuntu/.env"
 
       # 7. Deploy.sh 파일을 EC2로 전송
       - name: Send deploy.sh
