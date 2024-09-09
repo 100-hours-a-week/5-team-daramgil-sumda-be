@@ -101,7 +101,7 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: 22
           source: "./docker-compose.blue.yml"
-          target: "/home/ubuntu/"
+          target: "~/"
 
       - name: copy docker-compose.green.yml to remote server
         uses: appleboy/scp-action@master
@@ -111,7 +111,7 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: 22
           source: "./docker-compose.green.yml"
-          target: "/home/ubuntu/"
+          target: "~/"
 
       - name: copy deploy.sh to remote server
         uses: appleboy/scp-action@master
@@ -121,7 +121,7 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: 22
           source: "./deploy.sh"
-          target: "/home/ubuntu/"
+          target: "~/"
 
       - name: Execute deploy.sh script remotely
         uses: appleboy/ssh-action@master
