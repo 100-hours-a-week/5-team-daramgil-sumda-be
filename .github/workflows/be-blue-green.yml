@@ -1,4 +1,4 @@
-name: CI/CD Blue-Green Deployment
+name: CI/CD with Docker Compose and Blue-Green Deployment
 
 on:
   push:
