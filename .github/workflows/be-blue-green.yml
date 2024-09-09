@@ -75,7 +75,7 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             cd /home/ubuntu/
-            docker-compose --env-file /home/ubuntu/.env up -d
+            docker compose --env-file /home/ubuntu/.env up -d
 
       # 9. 컨테이너 상태 확인
       - name: Check Docker containers
@@ -86,4 +86,4 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             docker ps
-            docker-compose logs
+            docker compose logs
