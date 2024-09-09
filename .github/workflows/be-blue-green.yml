@@ -68,7 +68,7 @@ jobs:
           script: |
             cd /home/ubuntu/
             chmod +x ./deploy.sh
-            ./deploy.sh /home/ubuntu/project/docker-compose.yml  # docker-compose.yml 경로를 명확하게 지정
+            ./deploy.sh /home/ubuntu/docker-compose.yml
 
       # 9. 컨테이너 상태 확인
       - name: Check Docker containers
