@@ -24,6 +24,21 @@ jobs:
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Add EC2 host to known_hosts
+        run: |
+          ssh-keyscan -H ${{ secrets.EC2_DEV_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Verify SSH connection
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_DEV_HOST }} echo "SSH connection successful"
+
+
       # 5. .env 파일 준비
       - name: Create .env file
         run: |
