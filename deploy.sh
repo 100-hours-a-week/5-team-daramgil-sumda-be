@@ -15,12 +15,14 @@ then
         TERMINATE_CONTAINER=be-green
         START_PORT=8081
         TERMINATE_PORT=8082
+        DOCKER_COMPOSE_FILE="/home/ubuntu/docker-compose.blue.yml"
 else
         # blue가 실행 중인 경우
         START_CONTAINER=be-green
         TERMINATE_CONTAINER=be-blue
         START_PORT=8082
         TERMINATE_PORT=8081
+        DOCKER_COMPOSE_FILE="/home/ubuntu/docker-compose.green.yml"
 fi
 
 echo "${START_CONTAINER} up"
@@ -66,7 +68,7 @@ sudo service nginx reload
 
 # 기존에 실행 중이었던 docker-compose는 종료시켜줍니다.
 echo "${TERMINATE_CONTAINER} down"
-sudo docker-compose -f docker-compose.yml down ${TERMINATE_CONTAINER}
+sudo docker-compose -f /home/ubuntu/docker-compose.${TERMINATE_CONTAINER}.yml down
 echo "success deployment"
 
 ## 설정 변수
