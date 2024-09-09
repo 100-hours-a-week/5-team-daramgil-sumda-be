@@ -51,7 +51,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
           source: "./.env"
-          target: "/home/ubuntu/.env"
+          target: "/home/ubuntu/"
           rm: true
 
       # 7. Deploy.sh 파일을 EC2로 전송
