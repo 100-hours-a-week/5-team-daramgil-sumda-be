@@ -57,7 +57,7 @@ start_container() {
     local NGINX_CONF=$3
 
     echo "$COLOR 컨테이너를 띄우는 중"
-    docker-compose -f $DOCKER_COMPOSE_FILE up -d ${CONTAINER_NAME}-${COLOR}
+    docker-compose --env-file -f $DOCKER_COMPOSE_FILE up -d ${CONTAINER_NAME}-${COLOR}
     echo "${CONTAINER_SETUP_DELAY_SECOND}초 대기"
     sleep $CONTAINER_SETUP_DELAY_SECOND
 

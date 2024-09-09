@@ -61,7 +61,6 @@ jobs:
           username: ubuntu
           host: ${{ secrets.EC2_BACK_BLUE }}
           key: ${{ secrets.EC2_KEY }}
-          port: 22
           source: "./deploy.sh"
           target: "/home/ubuntu/"
           rm: true
