@@ -38,12 +38,6 @@ jobs:
           echo "SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID }}" >> .env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
 
-  deploy:
-    needs: setting
-    runs-on: ubuntu-latest
-
-    steps:
-      # 6. .env 파일을 서버로 복사
       - name: Copy .env file to server
         uses: appleboy/ssh-action@master
         with:
@@ -52,8 +46,12 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           source: "./.env"
           target: "/home/ubuntu/"
-          rm: true
 
+  deploy:
+    needs: setting
+    runs-on: ubuntu-latest
+
+    steps:
       # 7. Deploy.sh 파일을 EC2로 전송
       - name: Send deploy.sh
         uses: appleboy/ssh-action@master
@@ -63,7 +61,6 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           source: "./deploy.sh"
           target: "/home/ubuntu/"
-          rm: true
 
       # 8. Docker Compose 및 Blue-Green 배포 실행
       - name: Docker Compose 및 Blue-Green 배포 실행
