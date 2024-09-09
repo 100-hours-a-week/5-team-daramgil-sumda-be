@@ -42,7 +42,7 @@ jobs:
           host: ${{ secrets.EC2_BACK_BLUE }}
           key: ${{ secrets.EC2_KEY }}
           source: "./deploy.sh"
-          target: "/home/ubuntu/project/"
+          target: "/home/ubuntu/"
 
       # 6. Docker Compose 및 Blue-Green 배포 실행
       - name: Execute deploy.sh on EC2
@@ -54,7 +54,7 @@ jobs:
           script: |
             cd /home/ubuntu/
             chmod +x ./deploy.sh
-            ./deploy.sh /home/ubuntu/project/docker-compose.yml
+            ./deploy.sh /home/ubuntu/docker-compose.yml
 
       # 7. 컨테이너 상태 확인
       - name: Check Docker containers
