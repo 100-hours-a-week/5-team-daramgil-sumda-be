@@ -40,13 +40,10 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // JWT 토큰 생성
         String token = jwtUtil.createJwt(username, role, 60 * 60 * 6000L);
 
-        // 클라이언트로 JWT 토큰 전달
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        // 토큰을 JSON 형태로 응답의 body에 작성
-        String jsonResponse = "{\"Token\":\"" + token + "\"}";
-        response.getWriter().write(jsonResponse);
+        // 쿠키 생성
+        Cookie cookie = createCookie("Authorization", token);
+        response.addCookie(cookie);
+        response.sendRedirect("http://localhost:3000");
     }
 
     private Cookie createCookie(String key, String value) {
