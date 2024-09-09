@@ -96,40 +96,46 @@ jobs:
     - name: copy docker-compose.blue.yml to remote server
       uses: appleboy/scp-action@master
       with:
-          host: ${{ secrets.EC2_BACK_BLUE }}
-          username: ubuntu
-          key: ${{ secrets.EC2_KEY }}
-          port: 22
-          source: "./docker-compose.blue.yml"
-          target: "/home/ubuntu/"
+        host: ${{ secrets.EC2_BACK_BLUE }}
+        username: ubuntu
+        key: ${{ secrets.EC2_KEY }}
+        port: 22
+        source: "./docker-compose.blue.yml"
+        target: "/home/ubuntu/"
+        tar_tmp_path: ""
+        tar_exec: ""
 
     - name: copy docker-compose.green.yml to remote server
       uses: appleboy/scp-action@master
       with:
-          host: ${{ secrets.EC2_BACK_BLUE }}
-          username: ubuntu
-          key: ${{ secrets.EC2_KEY }}
-          port: 22
-          source: "./docker-compose.green.yml"
-          target: "/home/ubuntu/"
+        host: ${{ secrets.EC2_BACK_BLUE }}
+        username: ubuntu
+        key: ${{ secrets.EC2_KEY }}
+        port: 22
+        source: "./docker-compose.green.yml"
+        target: "/home/ubuntu/"
+        tar_tmp_path: ""
+        tar_exec: ""
 
     - name: copy deploy.sh to remote server
       uses: appleboy/scp-action@master
       with:
-          host: ${{ secrets.EC2_BACK_BLUE }}
-          username: ubuntu
-          key: ${{ secrets.EC2_KEY }}
-          port: 22
-          source: "./deploy.sh"
-          target: "/home/ubuntu/"
+        host: ${{ secrets.EC2_BACK_BLUE }}
+        username: ubuntu
+        key: ${{ secrets.EC2_KEY }}
+        port: 22
+        source: "./deploy.sh"
+        target: "/home/ubuntu/"
+        tar_tmp_path: ""
+        tar_exec: ""
 
     - name: Execute deploy.sh script remotely
       uses: appleboy/ssh-action@master
       with:
-          host: ${{ secrets.EC2_BACK_BLUE }}
-          username: ubuntu
-          key: ${{ secrets.EC2_KEY }}
-          port: 22
-          script: |
-            chmod +x /home/ubuntu/deploy.sh
-            /home/ubuntu/deploy.sh
+        host: ${{ secrets.EC2_BACK_BLUE }}
+        username: ubuntu
+        key: ${{ secrets.EC2_KEY }}
+        port: 22
+        script: |
+          chmod +x /home/ubuntu/deploy.sh
+          /home/ubuntu/deploy.sh
