@@ -1,4 +1,4 @@
-name: CI/CD with Docker
+name: CI/CD with Docker Compose and Blue-Green Deployment
 
 on:
   push:
@@ -9,58 +9,54 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+      # 1. 소스 코드 체크아웃
+      - uses: actions/checkout@v3
 
-      - name: Add EC2 host to known_hosts
-        run: |
-          ssh-keyscan -H ${{ secrets.EC2_BACK_BLUE }} >> ~/.ssh/known_hosts
+      # 2. Docker 설치
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
 
-      - name: Verify SSH connection
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_BACK_BLUE }} echo "SSH connection successful"
+      # 3. Docker Compose 설치
+      - name: Install Docker Compose
+        run: sudo apt-get install docker-compose -y
 
+      # 4. .env 파일 준비
+      - name: Create .env file
+        run: |
+          echo "DB_URL=${{ secrets.DB_URL }}" > .env
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+          echo "AIR_PUBLIC_API_KEY=${{ secrets.AIR_PUBLIC_API_KEY }}" >> .env
+          echo "WEATHER_PUBLIC_API_KEY=${{ secrets.WEATHER_PUBLIC_API_KEY }}" >> .env
+          echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
+          echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> .env
+          echo "SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+
+      # 5. Deploy.sh 파일을 EC2로 전송
       - name: Send deploy.sh
-        uses: 100-hours-a-week/5-team-daramgil-sumda-be@develop
+        uses: appleboy/scp-action@master
         with:
           username: ubuntu
           host: ${{ secrets.EC2_BACK_BLUE }}
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
-          port: 22
+          key: ${{ secrets.EC2_KEY }}
           source: "./deploy.sh"
           target: "/home/ubuntu/"
 
-      - name: Pull and deploy Docker image on EC2 (Blue or Green)
+      # 6. Docker Compose 및 Blue-Green 배포 실행
+      - name: Execute deploy.sh on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_BACK_BLUE }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /home/ubuntu/
+            chmod +x ./deploy.sh
+            ./deploy.sh
+
+      # 7. 컨테이너 상태 확인
+      - name: Check Docker containers
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_BACK_BLUE }} << 'EOF'
-            # 현재 실행중인 컨테이너 색상 확인 (blue 또는 green)
-            CURRENT_COLOR=$(docker ps --filter 'name=be-blue' --filter 'status=running' -q)
-
-            if [ -z "$CURRENT_COLOR" ]; then
-              echo "### BLUE => GREEN ###"
-              # green 컨테이너를 실행하기 위해 최신 이미지를 가져옵니다.
-              docker pull ghcr.io/kwongiyeon/5-team-daramgil-sumda-be:latest
-              docker stop be-blue || true
-              docker rm be-blue || true
-              docker run -d -p 8081:8081 --name be-green --env-file /home/${{ secrets.EC2_USER }}/.env ghcr.io/kwongiyeon/5-team-daramgil-sumda-be:latest
-          
-              # Nginx 설정 변경 후 재시작
-              sudo cp /etc/nginx/nginx.green.conf /etc/nginx/nginx.conf
-              sudo nginx -s reload
-
-            else
-              echo "### GREEN => BLUE ###"
-              # blue 컨테이너를 실행하기 위해 최신 이미지를 가져옵니다.
-              docker pull ghcr.io/kwongiyeon/5-team-daramgil-sumda-be:latest
-              docker stop be-green || true
-              docker rm be-green || true
-              docker run -d -p 8080:8080 --name be-blue --env-file /home/${{ secrets.EC2_USER }}/.env ghcr.io/kwongiyeon/5-team-daramgil-sumda-be:latest
-          
-              # Nginx 설정 변경 후 재시작
-              sudo cp /etc/nginx/nginx.blue.conf /etc/nginx/nginx.conf
-              sudo nginx -s reload
-            fi
-          EOF
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_BACK_BLUE }} "docker ps"
