@@ -40,7 +40,7 @@ jobs:
         with:
           username: ubuntu
           host: ${{ secrets.EC2_BACK_BLUE }}
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          key: ${{ secrets.EC2_KEY }}
           source: "./deploy.sh"
           target: "/home/ubuntu/"
 
@@ -50,7 +50,7 @@ jobs:
         with:
           host: ${{ secrets.EC2_BACK_BLUE }}
           username: ubuntu
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          key: ${{ secrets.EC2_KEY }}
           script: |
             cd /home/ubuntu/
             chmod +x ./deploy.sh
