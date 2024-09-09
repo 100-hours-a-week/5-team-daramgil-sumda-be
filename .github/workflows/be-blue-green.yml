@@ -102,8 +102,7 @@ jobs:
         port: 22
         source: "./docker-compose.blue.yml"
         target: "/home/ubuntu/"
-        tar_tmp_path: ""
-        tar_exec: ""
+        tar_exec: false
         strip_components: 0
 
     - name: copy docker-compose.green.yml to remote server
@@ -115,8 +114,7 @@ jobs:
         port: 22
         source: "./docker-compose.green.yml"
         target: "/home/ubuntu/"
-        tar_tmp_path: ""
-        tar_exec: ""
+        tar_exec: false
         strip_components: 0
 
     - name: copy deploy.sh to remote server
@@ -128,8 +126,7 @@ jobs:
         port: 22
         source: "./deploy.sh"
         target: "/home/ubuntu/"
-        tar_tmp_path: ""
-        tar_exec: ""
+        tar_exec: false
         strip_components: 0
 
     - name: Execute deploy.sh script remotely
