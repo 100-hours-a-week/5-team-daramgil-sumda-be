@@ -16,7 +16,7 @@ services:
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID}
       JWT_SECRET: ${JWT_SECRET}
     env_file:
-      - /home/ubuntu/.env
+      - ./.env
     container_name: be-blue
     network_mode: bridge
     restart: always
@@ -38,7 +38,7 @@ services:
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID}
       JWT_SECRET: ${JWT_SECRET}
     env_file:
-      - /home/ubuntu/.env
+      - ./.env
     container_name: be-green
     network_mode: bridge
     restart: always
