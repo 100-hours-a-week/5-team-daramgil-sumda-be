@@ -27,14 +27,29 @@ public class JWTFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        // Authorization 헤더에서 토큰 추출
-        String authorizationHeader = request.getHeader("Authorization");
-        String token = null;
-
-        // Authorization 헤더가 있는지 확인하고 Bearer 토큰 형식인지 체크
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            token = authorizationHeader.substring(7); // 'Bearer ' 이후의 토큰 값만 추출
+        //cookie들을 불러온 뒤 Authorization Key에 담긴 쿠키를 찾음
+        String authorization = null;
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {  // cookies가 null인지 확인
+            for (Cookie cookie : cookies) {
+                if ("Authorization".equals(cookie.getName())) {
+                    authorization = cookie.getValue();
+                    break;
+                }
+            }
         }
+
+        //Authorization 헤더 검증
+        if (authorization == null) {
+
+            System.out.println("token null");
+            filterChain.doFilter(request, response);
+
+            return;
+        }
+
+        //토큰
+        String token = authorization;
 
         //토큰 소멸 시간 검증
         if (jwtUtil.isExpired(token)) {
