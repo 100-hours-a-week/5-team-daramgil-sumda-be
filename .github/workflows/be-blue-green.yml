@@ -44,6 +44,8 @@ jobs:
           host: ${{ secrets.EC2_BACK_BLUE }}
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
+          script: |
+            sudo chmod 644 /home/ubuntu/.env
           source: "./.env"
           target: "/home/ubuntu/.env"
 
