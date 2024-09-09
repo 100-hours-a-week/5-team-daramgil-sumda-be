@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Docker Compose 설치 (만약 설치되어 있지 않다면)
+if ! [ -x "$(command -v docker-compose)" ]; then
+  echo 'docker-compose가 설치되어 있지 않으므로 설치합니다.' >&2
+  sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose
+fi
+
 IS_GREEN=$(docker ps | grep be-green) # 현재 실행중인 App이 blue인지 확인합니다.
 DEFAULT_CONF="/etc/nginx/nginx.conf"
 
@@ -7,7 +14,7 @@ if [ -z "$IS_GREEN" ]; then # blue가 실행중이라면
   echo "### BLUE => GREEN ###"
 
   echo "1. get green image"
-  docker-compose pull be-green # green 이미지를 가져옵니다.
+  docker-compose pull ghcr.io/kwongiyeon/5-team-daramgil-sumda-be:latest # green 이미지를 가져옵니다.
 
   echo "2. green container up"
   docker-compose up -d be-green # green 컨테이너를 실행합니다.
@@ -33,7 +40,7 @@ else
   echo "### GREEN => BLUE ###"
 
   echo "1. get blue image"
-  docker-compose pull be-blue
+  docker-compose pull ghcr.io/kwongiyeon/5-team-daramgil-sumda-be:latest
 
   echo "2. blue container up"
   docker-compose up -d be-blue
