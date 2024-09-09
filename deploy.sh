@@ -58,7 +58,7 @@ echo "server start!"
 echo "change nginx server port"
 
 # 종료되는 포트를 새로 시작되는 포트로 값을 변경해줍니다.
-sudo sed -i "s/${TERMINATE_PORT}/${START_PORT}/" /etc/nginx/conf.d/service-url.inc
+sudo sed -i "s/${TERMINATE_PORT}/${START_PORT}/" /etc/nginx/conf.d/default
 
 # 새로운 포트로 스프링부트가 구동 되고, nginx의 포트를 변경해주었다면, nginx 재시작해줍니다.
 echo "nginx reload.."
