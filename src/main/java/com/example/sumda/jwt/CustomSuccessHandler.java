@@ -25,10 +25,9 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     }
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException, IOException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
 
-
-        //OAuth2User
+        // OAuth2User
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
         String username = customUserDetails.getName();
@@ -38,10 +37,16 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
 
-        String token = jwtUtil.createJwt(username, role, 60*60*6000L);
+        // JWT 토큰 생성
+        String token = jwtUtil.createJwt(username, role, 60 * 60 * 6000L);
 
-        response.addCookie(createCookie("Authorization", token));
-        response.sendRedirect("http://localhost:3000/");
+        // 클라이언트로 JWT 토큰 전달
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        // 토큰을 JSON 형태로 응답의 body에 작성
+        String jsonResponse = "{\"accessToken\":\"" + token + "\"}";
+        response.getWriter().write(jsonResponse);
     }
 
     private Cookie createCookie(String key, String value) {
