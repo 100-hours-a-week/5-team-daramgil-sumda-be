@@ -37,7 +37,6 @@ jobs:
           echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> .env
           echo "SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID }}" >> .env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-
       # 6. .env 파일을 서버로 복사
       - name: Copy .env file to server
         uses: appleboy/scp-action@master
@@ -47,7 +46,6 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           source: "./.env"
           target: "/home/ubuntu/.env"
-          overwrite: true
 
       # 7. Deploy.sh 파일을 EC2로 전송
       - name: Send deploy.sh
@@ -70,7 +68,6 @@ jobs:
             cd /home/ubuntu/
             chmod +x ./deploy.sh
             ./deploy.sh /home/ubuntu/docker-compose.yml
-
       # 9. 컨테이너 상태 확인
       - name: Check Docker containers
         run: |
