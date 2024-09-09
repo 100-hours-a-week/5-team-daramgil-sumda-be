@@ -15,8 +15,6 @@ services:
       - SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
       - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID=${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID}
       - JWT_SECRET=${JWT_SECRET}
-    env_file:
-      - /home/ubuntu/.env
     container_name: be-blue
     restart: always
 
@@ -36,7 +34,5 @@ services:
       - SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
       - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID=${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID}
       - JWT_SECRET=${JWT_SECRET}
-    env_file:
-      - /home/ubuntu/.env
     container_name: be-green
     restart: always
