@@ -137,11 +137,5 @@ jobs:
         key: ${{ secrets.EC2_KEY }}
         port: 22
         script: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_BACK_BLUE }} << 'EOF'
-            docker login ghcr.io -u ${{ github.repository_owner }} --password ${{ secrets.GHCR_TOKEN }}
-            docker volume prune -f
-            docker pull ghcr.io/${{ github.repository_owner }}/sumda-fe-dev:latest
-            docker stop sumda-be || true
-            docker rm sumda-be || true
-            chmod +x /home/ubuntu/deploy.sh
-            /home/ubuntu/deploy.sh
+          chmod +x /home/ubuntu/deploy.sh
+          /home/ubuntu/deploy.sh
