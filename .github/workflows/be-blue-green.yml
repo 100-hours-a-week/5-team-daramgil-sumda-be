@@ -38,7 +38,7 @@ jobs:
       - name: Build Docker image
         run: |
           set -x
-          docker build --platform linux/arm64 --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} --progress=plain -t ghcr.io/${{ github.repository_owner }}/sumda-be-dev:latest .
+          docker build --platform linux/amd64 --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} --progress=plain -t ghcr.io/${{ github.repository_owner }}/sumda-be-dev:latest .
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
@@ -77,16 +77,16 @@ jobs:
             echo 'SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID }}' >> /home/${{ secrets.EC2_USER }}/.env
             echo 'JWT_SECRET=${{ secrets.JWT_SECRET }}' >> /home/${{ secrets.EC2_USER }}/.env
           EOF
-#      - name: Pull Docker image and run on EC2
-#        run: |
-#          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_DEV_HOST }} << EOF
-#            docker login ghcr.io -u ${{ github.repository_owner }} --password ${{ secrets.GHCR_TOKEN }}
-#            docker volume prune -f
-#            docker pull ghcr.io/${{ github.repository_owner }}/sumda-be-dev:latest
-#            docker stop sumda-be || true
-#            docker rm sumda-be || true
-#            docker run -d -p 8080:8080 --name sumda-be --env-file /home/${{ secrets.EC2_USER }}/.env ghcr.io/${{ github.repository_owner }}/sumda-be-dev:latest
-#          EOF
+      - name: Pull Docker image and run on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_DEV_HOST }} << EOF
+            docker login ghcr.io -u ${{ github.repository_owner }} --password ${{ secrets.GHCR_TOKEN }}
+            docker volume prune -f
+            docker pull ghcr.io/${{ github.repository_owner }}/sumda-be-dev:latest
+            docker stop sumda-be || true
+            docker rm sumda-be || true
+            docker run -d -p 8080:8080 --name sumda-be --env-file /home/${{ secrets.EC2_USER }}/.env ghcr.io/${{ github.repository_owner }}/sumda-be-dev:latest
+          EOF
 
   deploy:
     runs-on: ubuntu-latest
