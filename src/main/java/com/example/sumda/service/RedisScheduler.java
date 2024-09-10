@@ -31,6 +31,7 @@ public class RedisScheduler {
             RedisLocations redisLocations = new RedisLocations();
             redisLocations.setId(locations.getId());
             redisLocations.setStationId(locations.getStation().getId());
+            redisLocations.setCityWeatherId(locations.getCityWeatherId());
             locationRedisRepository.save(redisLocations);
         }
 
