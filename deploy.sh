@@ -1,31 +1,30 @@
 #!/bin/bash
 
+# hong: 리팩토링 해놔서 아래 변수만 설정에 맞게  변경하셔서 쓰심 됨다
+
 # 설정 변수
-CONTAINER_NAME="be"  # 컨테이너 prefix
+CONTAINER_NAME="spring-backend"  # 컨테이너 prefix
 CONTAINER_SETUP_DELAY_SECOND=10  # 컨테이너 실행 지연 시간
 MAX_RETRY_COUNT=15  # 서버 상태 확인 최대 시도 횟수
 RETRY_DELAY_SECOND=2  # 서버 상태 확인 지연 시간(초)
 BLUE_SERVER_URL="http://127.0.0.1:8081"  # blue 서버 URL
 GREEN_SERVER_URL="http://127.0.0.1:8082"  # green 서버 URL
-HEALTH_END_POINT="/api/health"  # 서버 health check 를 위한 엔드포인트 (200 응답만 오면 됨)
+HEALTH_END_POINT="/api/health"  # 서버 health check 를 위한 엔드포인트 (200 응답만 오면 됩니당)
 BLUE_DOCKER_COMPOSE_FILE_NAME="docker-compose.blue"  # blue 의 docker-compose 파일명 (ex. `docker-compose.blue.yml`)
 GREEN_DOCKER_COMPOSE_FILE_NAME="docker-compose.green"  # green 의 docker-compose 파일명 (ex. `docker-compose.green.yml`)
-NGINX_BLUE_CONF="/etc/nginx/nginx.blue.conf"  # NGINX의 blue 설정 파일 경로
-NGINX_GREEN_CONF="/etc/nginx/nginx.green.conf"  # NGINX의 green 설정 파일 경로
-NGINX_CONF_FILE="/etc/nginx/nginx.conf/default"  # 실제로 사용되는 NGINX 설정 파일 경로
+NGINX_SERVICE_URL_FILE="/etc/nginx/conf.d/service-url.inc"  # NGINX 설정 파일 경로
 
 # NGINX 재로드 함수
 reload_nginx() {
-    local NGINX_CONF=$1
     echo "NGINX 설정 변경 작업 시작"
 
-    sudo cp $NGINX_CONF $NGINX_CONF_FILE
-
     if nginx -t; then
-        sudo nginx -s reload
+        nginx -s reload
         echo "NGINX 설정 재로드 완료"
     else
         echo "NGINX 설정 오류 -> 롤백 수행"
+        echo "set \$service_url $CURRENT_SERVICE_URL;" > $NGINX_SERVICE_URL_FILE
+        nginx -s reload
         exit 1
     fi
 }
@@ -55,7 +54,7 @@ health_check() {
 start_container() {
     local COLOR=$1
     local DOCKER_COMPOSE_FILE_NAME=$2
-    local NGINX_CONF=$3
+    local SERVER_URL=$3
 
     echo "$COLOR 컨테이너를 띄우는 중"
     docker-compose -p ${CONTAINER_NAME}-$COLOR -f ${DOCKER_COMPOSE_FILE_NAME}.yml up -d
@@ -70,7 +69,8 @@ start_container() {
         exit 1
     else
         echo "$COLOR 배포 성공"
-        reload_nginx $NGINX_CONF  # NGINX 설정을 변경 후 재로드
+        echo "set \$service_url $SERVER_URL;" > $NGINX_SERVICE_URL_FILE
+        reload_nginx
         echo "기존 ${OTHER_COLOR} 컨테이너 정리"
         docker-compose -p ${CONTAINER_NAME}-${OTHER_COLOR} -f ${OTHER_DOCKER_COMPOSE_FILE_NAME}.yml down
     fi
