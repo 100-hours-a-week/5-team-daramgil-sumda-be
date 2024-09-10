@@ -66,6 +66,7 @@ jobs:
       - name: Create .env file on EC2
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_BACK_BLUE }} << EOF
+            touch .env
             echo 'DB_URL=${{ secrets.DB_URL }}' > /home/${{ secrets.EC2_USER }}/.env
             echo 'DB_USERNAME=${{ secrets.DB_USERNAME }}' >> /home/${{ secrets.EC2_USER }}/.env
             echo 'DB_PASSWORD=${{ secrets.DB_PASSWORD }}' >> /home/${{ secrets.EC2_USER }}/.env
@@ -82,52 +83,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: copy docker-compose.blue.yml to remote server
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.EC2_BACK_BLUE }}
-        username: ubuntu
-        key: ${{ secrets.EC2_KEY }}
-        port: 22
-        source: "./docker-compose.blue.yml"
-        target: "/home/ubuntu/"
-        tar_exec: false
-        strip_components: 0
+      - name: Pull Docker image and run on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_DEV_HOST }} << 'EOF'
+            docker login ghcr.io -u ${{ github.repository_owner }} --password ${{ secrets.GHCR_TOKEN }}
+            docker volume prune -f
+            docker pull ghcr.io/${{ github.repository_owner }}/sumda-be-dev:latest
 
-    - name: copy docker-compose.green.yml to remote server
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.EC2_BACK_BLUE }}
-        username: ubuntu
-        key: ${{ secrets.EC2_KEY }}
-        port: 22
-        source: "./docker-compose.green.yml"
-        target: "/home/ubuntu/"
-        tar_exec: false
-        strip_components: 0
+      - name: Send deploy.sh
+        uses: appleboy/ssh-action@master
+        with:
+          username: ubuntu
+          host: ${{ secrets.EC2_BACK_BLUE }}
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          source: "./deploy.sh"
+          target: "/home/ubuntu/"
 
-    - name: copy deploy.sh to remote server
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.EC2_BACK_BLUE }}
-        username: ubuntu
-        key: ${{ secrets.EC2_KEY }}
-        port: 22
-        source: "./deploy.sh"
-        target: "/home/ubuntu/"
-        tar_exec: false
-        strip_components: 0
-
-    - name: Execute deploy.sh script remotely
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.EC2_BACK_BLUE }}
-        username: ubuntu
-        key: ${{ secrets.EC2_KEY }}
-        port: 22
-        script: |
-          docker login ghcr.io -u ${{ github.repository_owner }} --password ${{ secrets.GHCR_TOKEN }}
-          docker volume prune -f
-          docker pull ghcr.io/kwongiyeon/5-team-daramgil-sumda-be:latest
-          chmod +x /home/ubuntu/deploy.sh
-          /home/ubuntu/deploy.sh
+      - name: blue green 배포
+        uses: appleboy/ssh-action@master
+        with:
+          username: ubuntu
+          host: ${{ secrets.EC2_BACK_BLUE }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            sudo chmod +x deploy.sh
+            sudo ./deploy.sh
+            docker image prune -f
