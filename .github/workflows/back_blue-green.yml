@@ -84,8 +84,25 @@ jobs:
           sudo docker login --username ${{ secrets.DOCKER_HUB_USERNAME }} --password ${{ secrets.DOCKER_PASSWORD }}
           sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/sumda-be:latest
 
+      # deploy.sh 파일 서버로 전달하기
+      - name: Send deploy.sh
+        uses: appleboy/scp-action@master
+        with:
+          username: ubuntu
+          host: ${{ secrets.EC2_BACK_BLUE }}
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          source: "./deploy.sh"
+          target: "/home/ubuntu/"
+
       # deploy.sh 의 실행 권한 주기 및 실행
       - name: blue green 배포
-        run: |
-          sudo chmod +x deploy.sh
-          sudo ./deploy.sh
+        uses: appleboy/ssh-action@master
+        with:
+          username: ubuntu
+          host: ${{ secrets.EC2_BACK_BLUE }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            sudo chmod +x deploy.sh
+            sudo ./deploy.sh
+            docker image prune -f
