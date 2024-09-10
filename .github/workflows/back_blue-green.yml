@@ -23,7 +23,7 @@ jobs:
 
       # Gradle Build
       - name: Build with Gradle
-        run: ./gradlew build
+        uses: gradle/gradle-build-action@v2.6.0
         with:
           arguments: bootJar
 
