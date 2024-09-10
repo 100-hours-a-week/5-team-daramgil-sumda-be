@@ -1,5 +1,6 @@
 package com.example.sumda.entity;
 
+import com.fasterxml.jackson.core.JsonToken;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
