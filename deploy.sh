@@ -1,34 +1,126 @@
 #!/bin/bash
 
+## spring boot build
+#echo -e "Spring Boot 빌드 중입니다..."
+#./gradlew build
+#
+## 현재 backend 확인
+#ACTIVE_SERVER_URL="<http://0.0.0.0/active>"
+#RESPONSE=$(curl -s $ACTIVE_SERVER_URL)
+#
+## 서버 응답에서 <h1>blue</h1> 패턴 찾기
+#echo -e "서버 응답: $RESPONSE"
+#if echo "$RESPONSE" | grep -q "blue"; then
+#  NOW_BACKEND="blue"
+#  NEW_BACKEND="green"
+#  echo -e "현재 활성화된 서버는 $NOW_BACKEND 입니다. 새로운 서버는 $NEW_BACKEND 입니다."
+#elif echo "$RESPONSE" | grep -q "green"; then
+#  NOW_BACKEND="green"
+#  NEW_BACKEND="blue"
+#  echo -e "현재 활성화된 서버는 $NOW_BACKEND 입니다. 새로운 서버는 $NEW_BACKEND 입니다."
+#else
+#  echo -e "응답을 확인할 수 없습니다."
+#  NEW_BACKEND="blue"
+#fi
+#
+## NEW_BACKEND 빌드
+#echo -e "${NEW_BACKEND} 서버를 빌드 중입니다..."
+#docker-compose build --no-cache $NEW_BACKEND
+#
+## NEW_BACKEND 시작
+#echo -e "${NEW_BACKEND} 서버를 시작 중입니다..."
+#docker-compose up -d $NEW_BACKEND
+#
+## 새로운 서버가 안정화되도록 대기 (60초)
+#echo -e "새로운 서버가 안정화되도록 대기 중입니다 60초..."
+#for i in {1..60}; do
+#  echo -e "$i/60..."
+#  sleep 1
+#done
+#
+## 새로운 서버의 안정성 확인 (5초 간격으로 3번 시도)
+#if [ "$NEW_BACKEND" = "blue" ]; then
+#  NEW_BACKEND_URL="<http://0.0.0.0:8081>"
+#else
+#  NEW_BACKEND_URL="<http://0.0.0.0:8082>"
+#fi
+#
+#SUCCESS=0
+#for i in {1..3}; do
+#  echo -e "${NEW_BACKEND} 서버에 요청 시도 중... ($i/3)"
+#  RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" $NEW_BACKEND_URL/healthcheck)
+#
+#  echo -e "$RESPONSE"
+#  if [ "$RESPONSE" -eq 200 ]; then
+#    SUCCESS=1
+#    break
+#  fi
+#  sleep 5
+#done
+#
+#if [ "$SUCCESS" -ne 1 ]; then
+#  echo -e "${NEW_BACKEND} 서버가 정상적으로 시작되지 않았습니다."
+#  exit 1
+#fi
+#
+## Nginx 설정 파일 업데이트
+#NGINX_CONF_TEMPLATE="./nginx/nginx-template.conf"
+#NGINX_CONF="./nginx/nginx.conf"
+#
+#sed "s/{{BACKEND}}/$NEW_BACKEND/" $NGINX_CONF_TEMPLATE > $NGINX_CONF
+#
+## Nginx 컨테이너 내부로 설정 파일 복사
+#docker cp $NGINX_CONF nginx:/etc/nginx/nginx.conf
+#
+## Nginx 컨테이너에서 Nginx 재시작
+#docker exec nginx nginx -s reload
+#
+#echo -e "Nginx 설정이 업데이트되었습니다. 현재 backend는 $NEW_BACKEND 입니다."
+#
+## 현재 운용되는 서버 한번 더 확인
+#echo -e "새롭게 생성된 서버를 확인합니다."
+#
+## 서버 응답에서 <h1>blue</h1> 패턴 찾기
+#RESPONSE=$(curl -s $ACTIVE_SERVER_URL)
+#echo -e "서버 응답: $RESPONSE"
+#
+#echo -e "${NOW_BACKEND} 를 종료합니다..."
+#docker-compose stop $NOW_BACKEND
+#docker-compose rm -f $NOW_BACKEND
+#
+#docker container prune -f
+#docker image prune -f
+
+#------------------------------------------------------------------------------------
+
 RUNNING_CONTAINER=$(sudo docker ps)
 echo "실행중인 컨테이너 목록: ${RUNNING_CONTAINER}"
 
 # 실행 중인 도커 컴포즈 확인
-EXIST_BLUE=$(sudo docker ps -q -f name=be-blue)
+EXIST_BLUE=$(docker-compose -f /home/ubuntu/docker-compose.blue.yml ps -q be-blue)
 
 echo "EXIST_BLUE 값: ${EXIST_BLUE}"
 
 if [ -z "${EXIST_BLUE}" ] # -z는 문자열 길이가 0이면 true. blue가 실행 중이지 않다는 의미.
 then
-        # green이 실행 중인 경우
-        START_CONTAINER=be-blue
-        TERMINATE_CONTAINER=be-green
-        START_PORT=8081
-        TERMINATE_PORT=8082
-        DOCKER_COMPOSE_FILE="/home/ubuntu/docker-compose.blue.yml"
+  docker-compose -f /home/ubuntu/docker-compose.blue.yml up -d be-blue
+#        # green이 실행 중인 경우
+#        START_CONTAINER=be-blue
+#        TERMINATE_CONTAINER=be-green
+#        START_PORT=8081
+#        TERMINATE_PORT=8082
+#        DOCKER_COMPOSE_FILE="/home/ubuntu/docker-compose.blue.yml"
 else
-        # blue가 실행 중인 경우
-        START_CONTAINER=be-green
-        TERMINATE_CONTAINER=be-blue
-        START_PORT=8082
-        TERMINATE_PORT=8081
-        DOCKER_COMPOSE_FILE="/home/ubuntu/docker-compose.green.yml"
+  docker-compose -f /home/ubuntu/docker-compose.green.yml up -d be-green
+#        # blue가 실행 중인 경우
+#        START_CONTAINER=be-green
+#        TERMINATE_CONTAINER=be-blue
+#        START_PORT=8082
+#        TERMINATE_PORT=8081
+#        DOCKER_COMPOSE_FILE="/home/ubuntu/docker-compose.green.yml"
 fi
 
-echo "${START_CONTAINER} up"
-
-# 실행해야하는 컨테이너 docker-compose로 실행.
-sudo docker-compose -f docker-compose.yml up -d --build ${START_CONTAINER}
+sudo docker-compose -f /home/ubuntu/docker-compose.${START_CONTAINER}.yml up -d --build ${START_CONTAINER}
 
 RUNNING_CONTAINER=$(sudo docker ps)
 echo "실행중인 컨테이너 목록: ${RUNNING_CONTAINER}"
@@ -70,6 +162,8 @@ sudo service nginx reload
 echo "${TERMINATE_CONTAINER} down"
 sudo docker-compose -f /home/ubuntu/docker-compose.${TERMINATE_CONTAINER}.yml down
 echo "success deployment"
+
+#------------------------------------------------------------------------------------
 
 ## 설정 변수
 #CONTAINER_NAME="be"  # 컨테이너 prefix
