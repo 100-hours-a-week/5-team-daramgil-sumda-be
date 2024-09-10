@@ -82,7 +82,8 @@ jobs:
       - name: Docker Hub 리포지토리에서 최신 이미지 가져오기
         run: |
           sudo docker login --username ${{ secrets.DOCKER_HUB_USERNAME }} --password ${{ secrets.DOCKER_PASSWORD }}
-          sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/sumda-be:latest
+          docker volume prune -f
+          docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/sumda-be:latest
 
       # deploy.sh 파일 서버로 전달하기
       - name: Send deploy.sh
