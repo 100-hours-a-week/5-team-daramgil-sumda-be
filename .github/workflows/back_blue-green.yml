@@ -41,7 +41,7 @@ jobs:
           file: ./Dockerfile2
           push: true
           platforms: linux/amd64
-          tags: ${{ secrets.DOCKER_HUB_REPOSITORY }}:${{ secrets.IMAGE_TAG }}
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/sumda-be:latest
 
   docker-pull-and-run:
     # 우리가 설정한 runner 의 실행 환경
