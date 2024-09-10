@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# hong: 리팩토링 해놔서 아래 변수만 설정에 맞게  변경하셔서 쓰심 됨다
-
 # 설정 변수
 CONTAINER_NAME="spring-backend"  # 컨테이너 prefix
 CONTAINER_SETUP_DELAY_SECOND=10  # 컨테이너 실행 지연 시간
