@@ -2,10 +2,10 @@ version: '3'
 
 services:
   spring-backend:
-    container_name: spring-backend-blue
-    image: sumda-be:latest
+    container_name: spring-backend-green
+    image: kwongy/sumda-be:latest
     ports:
-      - "8081:8080"
+      - "8082:8080"
     env_file:
       - .env
 

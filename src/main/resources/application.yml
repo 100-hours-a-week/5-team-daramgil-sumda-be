@@ -62,9 +62,9 @@ api:
       key: ${WEATHER_PUBLIC_API_KEY}
 
 ---
-
 server:
   port: 8081
+
 spring:
   config:
     activate:
