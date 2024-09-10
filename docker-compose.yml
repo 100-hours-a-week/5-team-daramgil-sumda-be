@@ -12,6 +12,7 @@ services:
       - green
 
   blue:
+    platform: linux/amd64
     container_name: blue
     build:
       context: .
@@ -23,6 +24,7 @@ services:
       - "8081:8081"
 
   green:
+    platform: linux/amd64
     container_name: green
     build:
       context: .
