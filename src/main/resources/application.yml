@@ -48,8 +48,13 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 
-  jwt:
-    secret: ${JWT_SECRET}
+jwt:
+  secret: ${JWT_SECRET}
+  redirect: ${JWT_REDIRECT_URI}
+  access-token:
+    expiration-time: ${ACCESS_TOKEN_EXPIRATION_TIME}
+  refresh-token:
+    expiration-time: ${REFRESH_TOKEN_EXPIRATION_TIME}
 
 
 # 대기정보 조회 에스핀 개인키
