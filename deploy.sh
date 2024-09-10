@@ -81,12 +81,12 @@ if [ "$(docker ps -q -f name=${CONTAINER_NAME}-blue)" ]; then
     echo "blue >> green"
     OTHER_COLOR="blue"
     OTHER_DOCKER_COMPOSE_FILE_NAME=$BLUE_DOCKER_COMPOSE_FILE_NAME
-    start_container "green" $GREEN_SERVER_URL $NGINX_GREEN_CONF
+    start_container "green" $GREEN_DOCKER_COMPOSE_FILE_NAME $GREEN_SERVER_URL
 else
     echo "green >> blue"
     OTHER_COLOR="green"
     OTHER_DOCKER_COMPOSE_FILE_NAME=$GREEN_DOCKER_COMPOSE_FILE_NAME
-    start_container "blue" $BLUE_SERVER_URL $NGINX_BLUE_CONF
+    start_container "blue" $BLUE_DOCKER_COMPOSE_FILE_NAME $BLUE_SERVER_URL
 fi
 
 #------------------------------------------------------------------------------------
