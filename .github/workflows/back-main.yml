@@ -39,7 +39,7 @@ jobs:
       # DockerHub Push
       - name: Build and Push Docker image
         run: |
-          docker build --platform linux/amd64 -t ${{ secrets.DOCKER_HUB_USERNAME }}/sumda-be:latest .
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/sumda-be:latest .
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/sumda-be:latest
   
 
