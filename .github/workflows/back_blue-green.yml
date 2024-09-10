@@ -1,0 +1,79 @@
+name: Didacto-core dev CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 코드 체크아웃
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # JDK 설치
+      - name: Set up JDK 17
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+          distribution: 'corretto'
+
+      # Gradle Build
+      - name: Build with Gradle
+        run: ./gradlew build
+        with:
+          arguments: bootJar
+
+  push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Docker 빌드 도구 설정
+        uses: docker/setup-buildx-action@v2.9.1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Docker 이미지 빌드 및 푸시
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile2
+          push: true
+          platforms: linux/amd64
+          tags: ${{ secrets.DOCKER_HUB_REPOSITORY }}:${{ secrets.IMAGE_TAG }}
+
+  docker-pull-and-run:
+    # 우리가 설정한 runner 의 실행 환경
+    runs-on: [ self-hosted, Linux, X64 ]
+    needs: [ docker-build-and-push ]
+    # 도커 이미지 빌드 및 리포지토리로 push 가 성공할 경우에만 진행
+    if: ${{ needs.docker-build-and-push.result == 'success' }}
+
+    steps:
+      # 프로젝트에서 환경 변수를 .env 로 관리한다면 동일하게 진행하심 됩니다.
+      # 사용하지 않는다면 지워주시면 됩니다.
+      - name: 환경변수 파일 생성
+        env:
+          PROPERTIES_PROD: ${{ secrets.PROPERTIES_PROD }}
+        run: |
+          touch .env
+          echo "${PROPERTIES_PROD}" > .env
+
+      # docker hub 의 private 리포지토리에 있는 이미지를 pull
+      - name: Docker Hub 리포지토리에서 최신 이미지 가져오기
+        run: |
+          sudo docker login --username ${{ secrets.DOCKER_HUB_USERNAME }} --password ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          sudo docker pull ${{ secrets.DOCKER_HUB_REPOSITORY }}:${{ secrets.IMAGE_TAG }}
+
+      # deploy.sh 의 실행 권한 주기 및 실행
+      - name: blue green 배포
+        run: |
+          sudo chmod +x deploy.sh
+          sudo ./deploy.sh
