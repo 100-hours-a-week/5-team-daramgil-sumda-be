@@ -77,7 +77,6 @@ jobs:
             echo 'SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID }}' >> /home/${{ secrets.EC2_USER }}/.env
             echo 'JWT_SECRET=${{ secrets.JWT_SECRET }}' >> /home/${{ secrets.EC2_USER }}/.env
           EOF
-      -
 
   deploy:
     runs-on: ubuntu-latest
