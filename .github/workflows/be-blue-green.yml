@@ -38,7 +38,7 @@ jobs:
       - name: Build Docker image
         run: |
           set -x
-          docker build --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} --progress=plain -t ghcr.io/${{ github.repository_owner }}/sumda-be-dev:latest .
+          docker build --platform linux/amd64 --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} --progress=plain -t ghcr.io/${{ github.repository_owner }}/sumda-be-dev:latest .
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
