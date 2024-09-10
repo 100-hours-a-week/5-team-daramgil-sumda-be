@@ -129,6 +129,6 @@ jobs:
         script: |
           docker login ghcr.io -u ${{ github.repository_owner }} --password ${{ secrets.GHCR_TOKEN }}
           docker volume prune -f
-          docker pull ghcr.io/${{ github.repository_owner }}/sumda-be-dev:latest
+          docker pull ghcr.io/kwongiyeon/5-team-daramgil-sumda-be:latest
           chmod +x /home/ubuntu/deploy.sh
           /home/ubuntu/deploy.sh
