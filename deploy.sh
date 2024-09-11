@@ -33,7 +33,7 @@ RUNNING_CONTAINER=$(sudo docker ps)
 echo "실행중인 컨테이너 목록: ${RUNNING_CONTAINER}"
 
 # 서버 상태 확인
-for cnt in {1..20}; do
+for cnt in {1..10}; do
     echo "서버 상태 확인 중..."
 
     UP=$(curl -s http://127.0.0.1:${START_PORT}/api/health | grep 'UP')
@@ -46,7 +46,7 @@ for cnt in {1..20}; do
     sleep 10
 done
 
-if [ $cnt -eq 20 ]; then
+if [ $cnt -eq 10 ]; then
     echo "배포 실패: 서버가 시작되지 않았습니다."
     exit 1
 fi
@@ -54,7 +54,7 @@ fi
 # NGINX 포트 변경 및 재시작
 echo "NGINX 설정 변경 및 재시작..."
 sudo cp /etc/nginx/nginx.blue.conf /etc/nginx/nginx.green.conf
-sudo service nginx reload
+sudo systemctl restart nginx
 
 #이전 컨테이너 중지
 docker-compose -f /home/ubuntu/docker-compose.${TERMINATE_CONTAINER}.yml down
