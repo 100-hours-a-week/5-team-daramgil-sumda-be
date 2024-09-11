@@ -29,21 +29,9 @@ public class SquirrelController {
     private final SquirrelService squirrelService;
 
     // 유저의 다람쥐 정보 불러오기
-//    @GetMapping("/")
-//    public ResponseEntity<?> getUserSquirrel(@AuthenticationPrincipal CustomOAuth2User oAuth2User) {
-//        Long userId = oAuth2User.getId(); // 인증된 사용자로부터 userId 추출
-//        UserSquirrelResponseDto userSquirrelResponseDto = squirrelService.getUserSquirrel(userId);
-//
-//        if (userSquirrelResponseDto == null) {
-//            throw new CustomException(ErrorCode.USER_SQUIRREL_NOT_FOUND);
-//        }
-//        return ResponseUtils.createResponse(HttpStatus.OK, "현재 키우고 있는 다람쥐 정보 조회 완료", userSquirrelResponseDto);
-//    }
-
-
     @GetMapping("/")
-    public ResponseEntity<?> getUserSquirrel() {
-        Long userId = 3692363245L; // 인증된 사용자로부터 userId 추출
+    public ResponseEntity<?> getUserSquirrel(@AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+        Long userId = oAuth2User.getId(); // 인증된 사용자로부터 userId 추출
         UserSquirrelResponseDto userSquirrelResponseDto = squirrelService.getUserSquirrel(userId);
 
         if (userSquirrelResponseDto == null) {
@@ -51,8 +39,6 @@ public class SquirrelController {
         }
         return ResponseUtils.createResponse(HttpStatus.OK, "현재 키우고 있는 다람쥐 정보 조회 완료", userSquirrelResponseDto);
     }
-
-
 
     // 다람쥐한테 도토리 주기 (개수 유저가 지정)
     @PostMapping("/feed")
