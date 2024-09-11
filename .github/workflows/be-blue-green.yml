@@ -84,7 +84,11 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_BACK_BLUE }} << 'EOF'
             docker login ghcr.io -u ${{ github.repository_owner }} --password ${{ secrets.GHCR_TOKEN }}
             docker volume prune -f
-            docker pull ghcr.io/${{ github.repository_owner }}/sumda-be:latest    
+            docker pull ghcr.io/${{ github.repository_owner }}/sumda-be:latest
+            docker stop sumda-be:latest || true
+            docker rm sumda-be:latest || true
+            docker run -d -p 8081:8080 --name sumda-be --env-file /home/${{ secrets.EC2_USER }}/.env ghcr.io/${{ github.repository_owner }}/sumda-be-dev:latest
+          EOF
 
   deploy:
     runs-on: ubuntu-latest
