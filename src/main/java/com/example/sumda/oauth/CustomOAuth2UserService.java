@@ -1,4 +1,4 @@
-package com.example.sumda.service;
+package com.example.sumda.oauth;
 
 import com.example.sumda.dto.auth.CustomOAuth2User;
 import com.example.sumda.dto.auth.KakaoUserInfoResponse;
@@ -23,10 +23,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
-
         KakaoUserInfoResponse kakaoUser = new KakaoUserInfoResponse(oAuth2User.getAttributes());
-
-
 
         Long id = Long.parseLong(kakaoUser.getProviderId());
 
@@ -37,10 +34,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             User userEntity = User.createUser(id, kakaoUser.getNickname(), "email");
 
             userRepository.save(userEntity);
-
         }
 
-        UserDto userDto = new UserDto("USER", kakaoUser.getNickname(), kakaoUser.getNickname());
+        UserDto userDto = UserDto.of(id, kakaoUser.getNickname());
 
         return new CustomOAuth2User(userDto);
     }

@@ -1,17 +1,19 @@
 package com.example.sumda.dto.auth;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Getter
+@AllArgsConstructor
+@ToString
 public class UserDto {
 
-    private String role;
+    private Long userId;
     private String name;
-    private String username;
 
-    public UserDto(String role, String name, String username) {
-        this.role = role;
-        this.name = name;
-        this.username = username;
+    public static UserDto of(Long userId,  String name) {
+        return new UserDto(userId, name);
     }
 }
