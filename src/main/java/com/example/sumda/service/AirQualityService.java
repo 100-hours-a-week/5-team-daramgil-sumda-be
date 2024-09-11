@@ -34,7 +34,7 @@ public class AirQualityService {
         // 대기질 정보 불러오기
        List<AirQualityData> airQualityDataList = getAirQualityData(id);
 
-        AirQualityData airQuality = airQualityDataList.get(0); // 가장 최근 데이터
+        AirQualityData airQuality = airQualityDataList.get(10); // 가장 최근 데이터
 
         AirQualityDto airQualityDto = new AirQualityDto();
         airQualityDto.setId(airQuality.getId());

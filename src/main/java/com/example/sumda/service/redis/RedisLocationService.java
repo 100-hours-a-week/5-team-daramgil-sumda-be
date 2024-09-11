@@ -3,9 +3,11 @@ package com.example.sumda.service.redis;
 import com.example.sumda.entity.redis.RedisLocations;
 import com.example.sumda.repository.redis.LocationRedisRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+@Service
 public class RedisLocationService {
     @Autowired
     private LocationRedisRepository locationRedisRepository;
