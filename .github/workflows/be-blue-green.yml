@@ -63,6 +63,7 @@ jobs:
       - name: Verify SSH connection
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_BACK_BLUE }} echo "SSH connection successful"
+          
       - name: Create .env file on EC2
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_BACK_BLUE }} << EOF
