@@ -88,66 +88,60 @@ else
 fi
 
 #------------------------------------------------------------------------------------
-#RUNNING_CONTAINER=$(sudo docker ps)
-#echo "실행중인 컨테이너 목록: ${RUNNING_CONTAINER}"
-#
-## 실행 중인 도커 컴포즈 확인
-#EXIST_BLUE=$(docker-compose -f /home/ubuntu/docker-compose.blue.yml ps -q blue)
-#
-#echo "EXIST_BLUE 값: ${EXIST_BLUE}"
-#
-#if [ -z "${EXIST_BLUE}" ]; then
-#  # blue가 실행 중이지 않으면 blue 컨테이너를 시작
-#  docker-compose -f /home/ubuntu/docker-compose.blue.yml up -d blue
-#  START_CONTAINER="blue"
-#  TERMINATE_CONTAINER="green"
-#  START_PORT=8081
-#  TERMINATE_PORT=8082
-#else
-#  # blue가 실행 중이면 green 컨테이너를 시작
-#  docker-compose -f /home/ubuntu/docker-compose.green.yml up -d green
-#  START_CONTAINER="green"
-#  TERMINATE_CONTAINER="blue"
-#  START_PORT=8082
-#  TERMINATE_PORT=8081
-#fi
-#
-#echo "${START_CONTAINER} 컨테이너를 실행 중입니다."
-#
-## 컨테이너를 빌드하고 실행하는 명령어
-#sudo docker-compose -f /home/ubuntu/docker-compose.${START_CONTAINER}.yml up -d --build
-#
-#RUNNING_CONTAINER=$(sudo docker ps)
-#echo "실행중인 컨테이너 목록: ${RUNNING_CONTAINER}"
-#
-## 서버 상태 확인
-#for cnt in {1..10}; do
-#    echo "서버 상태 확인 중..."
-#
-#    UP=$(curl -s http://127.0.0.1:${START_PORT}/api/health | grep 'UP')
-#    if [ -n "${UP}" ]; then
-#        echo "서버가 성공적으로 시작되었습니다."
-#        break
-#    fi
-#
-#    echo "서버가 아직 시작되지 않았습니다. 10초 후 다시 확인합니다."
-#    sleep 10
-#done
-#
-#if [ $cnt -eq 10 ]; then
-#    echo "배포 실패: 서버가 시작되지 않았습니다."
-#    exit 1
-#fi
-#
-## NGINX 포트 변경 및 재시작
-#echo "NGINX 설정 변경 및 재시작..."
-#sudo sed -i "s/${TERMINATE_PORT}/${START_PORT}/" /etc/nginx/conf.d/default
-#sudo service nginx reload
-#
-## 기존에 실행 중이던 컨테이너 종료
-#echo "${TERMINATE_CONTAINER} 컨테이너를 종료 중입니다."
-#sudo docker-compose -f /home/ubuntu/docker-compose.${TERMINATE_CONTAINER}.yml down
-#
-#echo "배포가 성공적으로 완료되었습니다."
 
 
+#!/bin/bash
+
+RUNNING_CONTAINER=$(sudo docker ps)
+echo "실행중인 컨테이너 목록: ${RUNNING_CONTAINER}"
+
+# 실행 중인 도커 컴포즈 확인
+EXIST_BLUE=$(docker-compose -f /home/ubuntu/docker-compose.blue.yml ps -q spring-backend)
+
+echo "EXIST_BLUE 값: ${EXIST_BLUE}"
+
+if [ -z "${EXIST_BLUE}" ]; then
+  # blue가 실행 중이지 않으면 blue 컨테이너를 시작
+  docker-compose -f /home/ubuntu/docker-compose.blue.yml up -d spring-backend
+  START_CONTAINER="blue"
+  TERMINATE_CONTAINER="green"
+  START_PORT=8081
+  TERMINATE_PORT=8082
+else
+  # blue가 실행 중이면 green 컨테이너를 시작
+  docker-compose -f /home/ubuntu/docker-compose.green.yml up -d spring-backend
+  START_CONTAINER="green"
+  TERMINATE_CONTAINER="blue"
+  START_PORT=8082
+  TERMINATE_PORT=8081
+fi
+
+echo "${START_CONTAINER} 컨테이너를 실행 중입니다."
+
+# 컨테이너를 빌드하고 실행하는 명령어
+sudo docker-compose -f /home/ubuntu/docker-compose.${START_CONTAINER}.yml up -d --build
+
+RUNNING_CONTAINER=$(sudo docker ps)
+echo "실행중인 컨테이너 목록: ${RUNNING_CONTAINER}"
+
+# 서버 상태 확인
+for cnt in {1..10}; do
+    echo "서버 상태 확인 중..."
+
+    UP=$(curl -s http://127.0.0.1:${START_PORT}/api/health | grep 'UP')
+    if [ -n "${UP}" ]; then
+        echo "서버가 성공적으로 시작되었습니다."
+        break
+    fi
+
+    echo "서버가 아직 시작되지 않았습니다. 10초 후 다시 확인합니다."
+    sleep 10
+done
+
+if [ $cnt -eq 10 ]; then
+    echo "배포 실패: 서버가 시작되지 않았습니다."
+    exit 1
+fi
+
+# NGINX 포트 변경 및 재시작
+echo "NGINX 설정 변경 및 재시작..."

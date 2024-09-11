@@ -3,7 +3,7 @@ version: '3'
 services:
   spring-backend:
     container_name: spring-backend-green
-    image: ghcr.io/kwongiyeon/sumda-be:latest
+    image: kwongy/sumda-be:latest
     ports:
       - "8082:8080"
     env_file:
@@ -12,7 +12,7 @@ services:
 
 #services:
 #  be-green:
-#    image: kwongy/sumda-be:latest
+#    image: ghcr.io/kwongiyeon/sumda-be:latest
 #    platform: linux/amd64
 #    ports:
 #      - "8082:8080"
