@@ -31,6 +31,7 @@ public enum ErrorCode {
     USER_SQUIRREL_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 유저의 다람쥐를 찾을 수 없습니다."),
     OVER_FEEDING_ERROR(HttpStatus.BAD_REQUEST,"지급하려는 도토리 개수가 너무 많습니다."),
     SQUIRREL_COLLECTION_EMPTY(HttpStatus.NOT_FOUND,"독립 시킨 다람쥐가 없습니다."),
+    SQUIRREL_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND,"해당 다람쥐를 찾을 수 없습니다."),
 
     // mission
     DAY_MISSION_INFO_NOT_FOUND(HttpStatus.NOT_FOUND,"완료한 일일미션이 없습니다."),
