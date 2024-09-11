@@ -20,7 +20,7 @@ public class AirQualityData {
 
     @Id
     @Column(name = "id")
-    private int id;
+    private Long id;
 
     @Column(name = "station_name")
     private String stationName;

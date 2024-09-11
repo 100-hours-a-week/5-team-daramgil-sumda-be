@@ -5,8 +5,10 @@ import io.sentry.spring.jakarta.EnableSentry;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import io.github.cdimascio.dotenv.Dotenv;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling
 public class SumdaApplication {
 
 	public static void main(String[] args) {

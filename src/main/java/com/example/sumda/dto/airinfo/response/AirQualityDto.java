@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class AirQualityDto {
-    private int id;
+    private Long id;
     private String station_name;
     private String so2;
     private String co;
