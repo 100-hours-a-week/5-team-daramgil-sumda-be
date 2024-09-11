@@ -33,18 +33,45 @@ public class SquirrelService {
 
     // 유저가 현재 키우고 있는 다람쥐 정보 불러오기
     public UserSquirrelResponseDto getUserSquirrel(long userId) {
-        Optional<UserSquirrel> userSquirrel = userSquirrelRepository.findByUserIdAndEndDateIsNull(userId);
+        Optional<UserSquirrel> optionalUserSquirrel = userSquirrelRepository.findByUserIdAndEndDateIsNull(userId);
         Optional<User> user = userRepository.findById(userId);
 
+        // 유저가 없는 경우 처리
+        if (user.isEmpty()) {
+            throw new CustomException(ErrorCode.MEMBER_NOT_FOUND);
+        }
+
+        // 유저에게 배정된 다람쥐가 없는 경우
+        if (optionalUserSquirrel.isEmpty()) {
+            // 기본 다람쥐 분양하기
+            Optional<SquirrelType> optionalSquirrelType = squirrelTypeRepository.findBySqrType("기본 다람쥐");
+
+            // 다람쥐 종류가 없는 경우에 대한 예외 처리
+            if (optionalSquirrelType.isEmpty()) {
+                throw new CustomException(ErrorCode.SQUIRREL_TYPE_NOT_FOUND);
+            }
+
+            UserSquirrel newSquirrel = new UserSquirrel();
+            newSquirrel.setUserId(userId);
+            newSquirrel.setSquTypeId(optionalSquirrelType.get());
+
+            userSquirrelRepository.save(newSquirrel);
+            optionalUserSquirrel = Optional.of(newSquirrel); // 새로 생성된 다람쥐로 설정
+        }
+
         // 다람쥐 종류
-        SquirrelType squTypeId = userSquirrel.get().getSquTypeId();
+        SquirrelType squTypeId = optionalUserSquirrel.get().getSquTypeId();
         Optional<SquirrelType> squirrelType = squirrelTypeRepository.findById(squTypeId.getId());
 
+        if (squirrelType.isEmpty()) {
+            throw new CustomException(ErrorCode.SQUIRREL_TYPE_NOT_FOUND);
+        }
+
         UserSquirrelResponseDto dto = new UserSquirrelResponseDto();
-        dto.setSquirrelId(userSquirrel.get().getId());
+        dto.setSquirrelId(optionalUserSquirrel.get().getId());
         dto.setType(squirrelType.get().getSqrType());
-        dto.setLevel(userSquirrel.get().getLevel());
-        dto.setFeed(userSquirrel.get().getFeed());
+        dto.setLevel(optionalUserSquirrel.get().getLevel());
+        dto.setFeed(optionalUserSquirrel.get().getFeed());
         dto.setUserAcorns(user.get().getUserAcorn());
 
         return dto;
