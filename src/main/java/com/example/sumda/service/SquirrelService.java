@@ -54,6 +54,7 @@ public class SquirrelService {
             UserSquirrel newSquirrel = new UserSquirrel();
             newSquirrel.setUserId(userId);
             newSquirrel.setSquTypeId(optionalSquirrelType.get());
+            newSquirrel.setLevel(1);
 
             userSquirrelRepository.save(newSquirrel);
             optionalUserSquirrel = Optional.of(newSquirrel); // 새로 생성된 다람쥐로 설정
