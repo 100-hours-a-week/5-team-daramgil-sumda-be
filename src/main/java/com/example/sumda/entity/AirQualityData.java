@@ -1,6 +1,5 @@
 package com.example.sumda.entity;
 
-import groovy.lang.GString;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -8,8 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.net.ssl.SSLSession;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @Entity
@@ -25,47 +22,49 @@ public class AirQualityData {
     @Column(name = "station_name")
     private String stationName;
 
+    // float -> Float로 변경하여 null 허용
     @Column(name = "so2")
-    private  float so2;
+    private Float so2;
 
     @Column(name = "co")
-    private  float co;
+    private Float co;
 
     @Column(name = "o3")
-    private float o3;
+    private Float o3;
 
     @Column(name = "no2")
-    private float no2;
+    private Float no2;
 
     @Column(name = "pm10")
-    private float pm10;
+    private Float pm10;
 
     @Column(name = "pm25")
-    private float pm25;
+    private Float pm25;
 
+    // int -> Integer로 변경하여 null 허용
     @Column(name = "so2_grade")
-    private int so2Grade;
+    private Integer so2Grade;
 
     @Column(name = "co_grade")
-    private int coGrade;
+    private Integer coGrade;
 
     @Column(name = "o3_grade")
-    private int o3Grade;
+    private Integer o3Grade;
 
     @Column(name = "no2_grade")
-    private int no2Grade;
+    private Integer no2Grade;
 
     @Column(name = "pm10_grade")
-    private int pm10Grade;
+    private Integer pm10Grade;
 
     @Column(name = "pm25_grade")
-    private int pm25Grade;
+    private Integer pm25Grade;
 
     @Column(name = "khai_value")
-    private int khaiValue;
+    private Integer khaiValue;
 
     @Column(name = "khai_grade")
-    private int khaiGrade;
+    private Integer khaiGrade;
 
     @Column(name = "data_time")
     private LocalDateTime dataTime;
