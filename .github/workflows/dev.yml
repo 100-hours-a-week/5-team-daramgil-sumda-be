@@ -65,6 +65,7 @@ jobs:
       - name: Create .env file on EC2
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_DEV_HOST }} << 'EOF'
+            touch .env
             echo 'DB_URL=${{ secrets.DB_URL }}' > /home/${{ secrets.EC2_USER }}/.env
             echo 'DB_USERNAME=${{ secrets.DB_USERNAME }}' >> /home/${{ secrets.EC2_USER }}/.env
             echo 'DB_PASSWORD=${{ secrets.DB_PASSWORD }}' >> /home/${{ secrets.EC2_USER }}/.env
