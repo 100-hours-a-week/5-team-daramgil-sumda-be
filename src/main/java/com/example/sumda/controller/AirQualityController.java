@@ -27,26 +27,17 @@ public class AirQualityController {
     // 현재 대기질 정보 조회
     @GetMapping("/current")
     public ResponseEntity<?> getNowAirInfoData(@RequestParam("id") Long id) {
-
+        // null 값을 오류로 처리하지 않고 그대로 전달
         AirQualityDto airQualityDto = airQualityService.getNowAirQualityData(id);
-
-        if(airQualityDto != null) {
-            return ResponseUtils.createResponse(HttpStatus.OK, "현재 대기질 정보 조회 완료", airQualityDto);
-        } else {
-            return ResponseUtils.createResponse(HttpStatus.BAD_REQUEST, "데이터가 없습니다.");
-        }
+        return ResponseUtils.createResponse(HttpStatus.OK, "현재 대기질 정보 조회 완료", airQualityDto);
     }
 
     // 시간별 대기질 정보 조회
     @GetMapping("/time")
     public ResponseEntity<?> getTimeAirInfoData(@RequestParam("id") Long id) {
-
+        // null 값을 오류로 처리하지 않고 그대로 전달
         List<AirQualityDto> airQualityDtoList = airQualityService.getTimeAirQualityData(id);
-        if(airQualityDtoList != null) {
-            return ResponseUtils.createResponse(HttpStatus.OK, "현재 대기질 정보 조회 완료", airQualityDtoList);
-        } else {
-            return ResponseUtils.createResponse(HttpStatus.BAD_REQUEST, "데이터가 없습니다.");
-        }
+        return ResponseUtils.createResponse(HttpStatus.OK, "시간별 대기질 정보 조회 완료", airQualityDtoList);
     }
 
     // 대기질 예측 이미지 조회
