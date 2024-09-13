@@ -86,7 +86,7 @@ jobs:
             docker login ghcr.io -u ${{ github.repository_owner }} --password ${{ secrets.GHCR_TOKEN }}
             docker volume prune -f
             docker pull ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be:latest
-            docker stop sumda-be:latest || true
-            docker rm sumda-be:latest || true
+            docker stop sumda-be || true
+            docker rm sumda-be || true
             docker run -d -p 8080:8080 --name sumda-be --env-file /home/${{ secrets.EC2_USER }}/.env ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be:latest
           EOF
