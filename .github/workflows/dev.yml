@@ -76,6 +76,9 @@ jobs:
             echo 'SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}' >> /home/${{ secrets.EC2_USER }}/.env
             echo 'SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID }}' >> /home/${{ secrets.EC2_USER }}/.env
             echo 'JWT_SECRET=${{ secrets.JWT_SECRET }}' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'ACCESS_TOKEN_EXPIRATION_TIME=3600000' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'REFRESH_TOKEN_EXPIRATION_TIME=86400000' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'JWT_REDIRECT_URI=http://localhost:3000' >> /home/${{ secrets.EC2_USER }}/.env
           EOF
       - name: Pull Docker image and run on EC2
         run: |
