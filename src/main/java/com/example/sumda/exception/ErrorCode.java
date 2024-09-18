@@ -14,6 +14,9 @@ public enum ErrorCode {
     // token
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
 
+    // auth
+    AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "인증에 실패하였습니다."),
+
     // ai
     AI_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "AI 서버 오류"),
 

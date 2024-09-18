@@ -44,7 +44,10 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/img/**","/images/**").permitAll()  // 이미지 경로 허용
-                        .requestMatchers("/**").permitAll()
+                        .requestMatchers("/api/auth/reissue","/api/auth/check").permitAll()
+                        .requestMatchers("/oauth2/authorization/kakao").permitAll()
+//                        .requestMatchers("/api/health").permitAll()
+                        .requestMatchers("/api/auth/logout").authenticated()
                 )
                 .oauth2Login((oauth2) -> oauth2
                         .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
@@ -66,6 +69,8 @@ public class SecurityConfig {
         //JWTFilter 추가
         http
                 .addFilterBefore(new JWTFilter(jwtUtil, userRepository), UsernamePasswordAuthenticationFilter.class);
+
+
 
         return http.build();
     }

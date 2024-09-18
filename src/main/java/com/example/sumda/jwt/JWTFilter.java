@@ -61,8 +61,6 @@ public class JWTFilter extends OncePerRequestFilter {
         //userDTO를 생성하여 값 set
         UserDto userDTO = new UserDto(user.getId(),user.getUserName());
 
-        System.out.println(userDTO);
-
         //UserDetails에 회원 정보 객체 담기
         CustomOAuth2User customOAuth2User = new CustomOAuth2User(userDTO);
 

@@ -23,7 +23,6 @@ public class AirQualityController {
     private final AirQualityService airQualityService;
     private final AirPollutionImageService airPollutionImageService;
 
-
     // 현재 대기질 정보 조회
     @GetMapping("/current")
     public ResponseEntity<?> getNowAirInfoData(@RequestParam("id") Long id) {
