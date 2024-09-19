@@ -16,6 +16,9 @@ public class RedisLocations {
     private Double latitude;
     private Double longitude;
     private Long stationId; // 관측소 id
+    private String stationName; // 관측소명
+    // 해당 관측소의 대기오염 데이터 정보 일괄
+
 
     // 아큐웨더 api 요청하고 저장하고 있는 데이터 테이블인 city_weather_data 의 Id
     private Long cityWeatherId;

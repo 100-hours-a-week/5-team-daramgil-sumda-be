@@ -7,7 +7,7 @@ import org.springframework.data.redis.core.RedisHash;
 
 @Getter
 @Setter
-@RedisHash(value = "air_station")
+@RedisHash(value = "airStation")
 public class RedisAirStation {
 
     @Id

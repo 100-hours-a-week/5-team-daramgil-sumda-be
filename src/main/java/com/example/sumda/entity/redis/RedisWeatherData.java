@@ -10,7 +10,7 @@ import org.springframework.data.redis.core.RedisHash;
 @Getter
 @Setter
 @ToString
-@RedisHash(value = "weather_data")
+@RedisHash(value = "weatherData")
 public class RedisWeatherData {
 
     @Id

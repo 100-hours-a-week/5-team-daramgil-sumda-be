@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@RedisHash(value = "air_data")
+@RedisHash(value = "airData")
 public class RedisAirData {
 
     @Id
@@ -30,6 +30,6 @@ public class RedisAirData {
     private int pm25Grade;
     private int khaiValue;
     private int khaiGrade;
-    private LocalDateTime dataTime;
+    private String dataTime;
 
 }
