@@ -10,9 +10,16 @@ public enum ErrorCode {
 
     // member
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 회원을 찾을 수 없습니다."),
+    MISMATCH_USER_INFO(HttpStatus.BAD_REQUEST, "회원 정보가 일치하지 않습니다."),
 
     // token
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
+    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "만료된 토큰입니다."),
+    UNSUPPORTED_TOKEN(HttpStatus.UNAUTHORIZED, "지원되지 않는 토큰입니다."),
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 리프레시 토큰을 찾을 수 없습니다."),
+
+    // auth
+    AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "인증에 실패하였습니다."),
 
     // ai
     AI_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "AI 서버 오류"),
