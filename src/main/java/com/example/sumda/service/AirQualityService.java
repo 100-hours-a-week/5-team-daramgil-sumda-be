@@ -123,7 +123,7 @@ public class AirQualityService {
             AirQualityStations station = airQualityStationRepository.findById(stationId)
                     .orElseThrow(()->new CustomException(ErrorCode.STATION_ERROR));
             stationName = station.getStationName();
-            System.out.println("Station Name: " + stationName);
+//            System.out.println("Station Name: " + stationName);
 
             // Redis에 저장해두기
             redisTemplate.opsForHash().put(redisKey, "stationName", stationName);
@@ -176,6 +176,11 @@ public class AirQualityService {
             pm10Images = pm10ImagesFromDB.stream()
                     .map(AirPollutionImages::getImageUrl)
                     .collect(Collectors.toList());
+
+            // RDS에서 가져온 데이터 레디스에 저장
+            for (AirPollutionImages image : pm10ImagesFromDB) {
+                redisService.saveToRedis(image);  // 메서드를 통해 레디스에 저장
+            }
         }
         AirPollutionImageResponseDto.AirPollutionImage pm10ImageDto = new AirPollutionImageResponseDto.AirPollutionImage();
         pm10ImageDto.setInformCode("PM10");
@@ -190,6 +195,11 @@ public class AirQualityService {
             pm25Images = pm25ImagesFromDB.stream()
                     .map(AirPollutionImages::getImageUrl)
                     .collect(Collectors.toList());
+
+            // RDS에서 가져온 데이터 레디스에 저장
+            for (AirPollutionImages image : pm25ImagesFromDB) {
+                redisService.saveToRedis(image);  // 메서드를 통해 레디스에 저장
+            }
         }
         AirPollutionImageResponseDto.AirPollutionImage pm25ImageDto = new AirPollutionImageResponseDto.AirPollutionImage();
         pm25ImageDto.setInformCode("PM25");
@@ -204,13 +214,16 @@ public class AirQualityService {
             o3Images = o3ImagesFromDB.stream()
                     .map(AirPollutionImages::getImageUrl)
                     .collect(Collectors.toList());
+
+            // RDS에서 가져온 데이터 레디스에 저장
+            for (AirPollutionImages image : o3ImagesFromDB) {
+                redisService.saveToRedis(image);  // 메서드를 통해 레디스에 저장
+            }
         }
         AirPollutionImageResponseDto.AirPollutionImage o3ImageDto = new AirPollutionImageResponseDto.AirPollutionImage();
         o3ImageDto.setInformCode("O3");
         o3ImageDto.setImages(o3Images);
         airPollutionImagesList.add(o3ImageDto);
-
-        redisScheduler.loadAirPollutionImageToRedis(); // 레디스에 이미지 저장
 
         // 최종 DTO에 설정
         airPollutionImagesDto.setAirPollutionImages(airPollutionImagesList);

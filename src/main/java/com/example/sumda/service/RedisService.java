@@ -1,10 +1,13 @@
 package com.example.sumda.service;
 
 import com.example.sumda.dto.airinfo.response.AirQualityDto;
+import com.example.sumda.entity.AirPollutionImages;
 import com.example.sumda.entity.AirQualityData;
 import com.example.sumda.entity.redis.RedisAirData;
+import com.example.sumda.entity.redis.RedisAirPollutionImages;
 import com.example.sumda.exception.CustomException;
 import com.example.sumda.exception.ErrorCode;
+import com.example.sumda.repository.redis.AirPollutionImageRedisRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
@@ -22,7 +25,8 @@ public class RedisService {
     private static final String LOCATION_AI_HASH = "LocationAiHash";
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private HashOperations<String,String,String> hashOperations;
+    private final AirPollutionImageRedisRepository airPollutionImageRedisRepository;
+    private  HashOperations<String,String,String> hashOperations;
 
     private final ObjectMapper objectMapper;
 
@@ -70,5 +74,17 @@ public class RedisService {
             }
         }
         return imageUrls; // 일치하는 모든 imageUrl 반환
+    }
+
+    // 레디스에 이미지 저장 (RDS에서 가져온 후 호출)
+    public void saveToRedis(AirPollutionImages airPollutionImages) {
+        RedisAirPollutionImages redisAirPollutionImages = new RedisAirPollutionImages();
+        redisAirPollutionImages.setId(airPollutionImages.getId());
+        redisAirPollutionImages.setInformCode(airPollutionImages.getInformCode());
+        redisAirPollutionImages.setImageUrl(airPollutionImages.getImageUrl());
+
+        // Redis에 저장 (Hash로 저장)
+        airPollutionImageRedisRepository.save(redisAirPollutionImages);
+
     }
 }
