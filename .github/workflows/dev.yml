@@ -76,6 +76,9 @@ jobs:
             echo 'SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}' >> /home/${{ secrets.EC2_USER }}/.env
             echo 'SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID }}' >> /home/${{ secrets.EC2_USER }}/.env
             echo 'JWT_SECRET=${{ secrets.JWT_SECRET }}' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'ACCESS_TOKEN_EXPIRATION_TIME=3600000' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'REFRESH_TOKEN_EXPIRATION_TIME=86400000' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'JWT_REDIRECT_URI=http://localhost:3000' >> /home/${{ secrets.EC2_USER }}/.env
           EOF
       - name: Pull Docker image and run on EC2
         run: |
@@ -83,7 +86,7 @@ jobs:
             docker login ghcr.io -u ${{ github.repository_owner }} --password ${{ secrets.GHCR_TOKEN }}
             docker volume prune -f
             docker pull ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be:latest
-            docker stop 5-team-daramgil-sumda-be:latest || true
-            docker rm 5-team-daramgil-sumda-be:latest || true
+            docker stop sumda-be || true
+            docker rm sumda-be || true
             docker run -d -p 8080:8080 --name sumda-be --env-file /home/${{ secrets.EC2_USER }}/.env ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be:latest
           EOF
