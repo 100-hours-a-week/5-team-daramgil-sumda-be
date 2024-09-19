@@ -79,7 +79,7 @@ jobs:
             echo 'ACCESS_TOKEN_EXPIRATION_TIME=3600000' >> /home/${{ secrets.EC2_USER }}/.env
             echo 'REFRESH_TOKEN_EXPIRATION_TIME=86400000' >> /home/${{ secrets.EC2_USER }}/.env
             echo 'JWT_REDIRECT_URI=${{ secrets.JWT_REDIRECT_URI }}' >> /home/${{ secrets.EC2_USER }}/.env
-            echo 'KAKAO_REDIRECT_URI={{ secrets.KAKAO_REDIRECT_URI }}' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'KAKAO_REDIRECT_URI=${{ secrets.KAKAO_REDIRECT_URI }}' >> /home/${{ secrets.EC2_USER }}/.env
           EOF
       - name: Pull Docker image and run on EC2
         run: |
