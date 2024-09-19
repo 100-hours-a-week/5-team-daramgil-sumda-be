@@ -2,16 +2,18 @@ package com.example.sumda.service;
 
 import com.example.sumda.dto.airinfo.response.AirQualityDto;
 import com.example.sumda.entity.AirQualityData;
+import com.example.sumda.entity.redis.RedisAirData;
+import com.example.sumda.exception.CustomException;
+import com.example.sumda.exception.ErrorCode;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +23,8 @@ public class RedisService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private HashOperations<String,String,String> hashOperations;
+
+    private final ObjectMapper objectMapper;
 
     @PostConstruct
     private void init() {
@@ -66,10 +70,5 @@ public class RedisService {
             }
         }
         return imageUrls; // 일치하는 모든 imageUrl 반환
-    }
-
-    // 주소 id로 대기질 정보 가져오기
-    public List<AirQualityDto> getAirQualityData(long id) {
-
     }
 }

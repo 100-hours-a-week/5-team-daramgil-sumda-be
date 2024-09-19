@@ -6,6 +6,7 @@ import com.example.sumda.entity.AirPollutionImages;
 import com.example.sumda.entity.AirQualityData;
 import com.example.sumda.entity.AirQualityStations;
 import com.example.sumda.entity.Locations;
+import com.example.sumda.entity.redis.RedisAirData;
 import com.example.sumda.entity.redis.RedisAirPollutionImages;
 import com.example.sumda.exception.CustomException;
 import com.example.sumda.exception.ErrorCode;
@@ -14,6 +15,9 @@ import com.example.sumda.repository.AirQualityDataRepository;
 import com.example.sumda.repository.AirQualityStationRepository;
 import com.example.sumda.repository.LocationRepository;
 import com.example.sumda.repository.redis.AirPollutionImageRedisRepository;
+import com.example.sumda.service.redis.RedisScheduler;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -34,12 +38,16 @@ public class AirQualityService {
     private final LocationRepository locationRepository;
     private final AirPollutionImageRepository airPollutionImageRepository;
     private final AirPollutionImageRedisRepository airPollutionImageRedisRepository;
+    private final RedisService redisService;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final ObjectMapper objectMapper;
+    private final RedisScheduler redisScheduler;
 
 
     // 측정소별 실시간 측정정보 - 대기질
-    public AirQualityDto getNowAirQualityData(long id) {
+    public AirQualityDto getNowAirQualityData(long locationId) throws JsonProcessingException {
         // 대기질 정보 불러오기
-       List<AirQualityData> airQualityDataList = getAirQualityData(id);
+       List<AirQualityData> airQualityDataList = getAirQualityData(locationId);
 
         AirQualityData airQuality = airQualityDataList.get(9); // 가장 최근 데이터
 
@@ -66,9 +74,9 @@ public class AirQualityService {
     }
 
     // 시간별 대기질 정보 조회
-    public List<AirQualityDto> getTimeAirQualityData(long id) {
+    public List<AirQualityDto> getTimeAirQualityData(long locationId) throws JsonProcessingException {
         // 대기질 정보 불러오기
-        List<AirQualityData> airQualityDataList = getAirQualityData(id);
+        List<AirQualityData> airQualityDataList = getAirQualityData(locationId);
 
         // List<AirQualityDto>로 변환
         List<AirQualityDto> airQualityDtoList = airQualityDataList.stream().map(airQuality -> {
@@ -96,68 +104,140 @@ public class AirQualityService {
         return airQualityDtoList;
     }
 
+    // 주소 id로 대기질 정보 가져오기 (레디스 사용)
+    public List<AirQualityData> getAirQualityData(long locationId) throws JsonProcessingException {
+        // 주소 id로 관측소명 가져오기
+        String redisKey = "locations:" + locationId;
+        Map<Object, Object> locationMap = redisTemplate.opsForHash().entries(redisKey);
 
-    // 대기질 예측 이미지 조회
-//    public AirPollutionImageResponseDto getAirPollutionImage() {
-//
-//        List<AirPollutionImages> pm10Images = airPollutionImageRepository.findByInformCode("PM10");
-//        List<AirPollutionImages> pm25Images = airPollutionImageRepository.findByInformCode("PM25");
-//        List<AirPollutionImages> o3Images = airPollutionImageRepository.findByInformCode("O3");
-//
-//        AirPollutionImageResponseDto airPollutionImagesDto = new AirPollutionImageResponseDto();
-//
-//        // 각 informCode에 해당하는 이미지를 AirPollutionImage로 변환하여 리스트에 추가
-//        List<AirPollutionImageResponseDto.AirPollutionImage> airPollutionImagesList = new ArrayList<>();
-//
-//        // PM10 이미지 설정
-//        AirPollutionImageResponseDto.AirPollutionImage pm10ImageDto = new AirPollutionImageResponseDto.AirPollutionImage();
-//        pm10ImageDto.setInformCode("PM10");
-//        pm10ImageDto.setImages(pm10Images.stream()
-//                .map(AirPollutionImages::getImageUrl) // AirPollutionImages 객체에서 이미지 URL 추출
-//                .collect(Collectors.toList()));
-//        airPollutionImagesList.add(pm10ImageDto);
-//
-//        // PM25 이미지 설정
-//        AirPollutionImageResponseDto.AirPollutionImage pm25ImageDto = new AirPollutionImageResponseDto.AirPollutionImage();
-//        pm25ImageDto.setInformCode("PM25");
-//        pm25ImageDto.setImages(pm25Images.stream()
-//                .map(AirPollutionImages::getImageUrl)
-//                .collect(Collectors.toList()));
-//        airPollutionImagesList.add(pm25ImageDto);
-//
-//        // O3 이미지 설정
-//        AirPollutionImageResponseDto.AirPollutionImage o3ImageDto = new AirPollutionImageResponseDto.AirPollutionImage();
-//        o3ImageDto.setInformCode("O3");
-//        o3ImageDto.setImages(o3Images.stream()
-//                .map(AirPollutionImages::getImageUrl)
-//                .collect(Collectors.toList()));
-//        airPollutionImagesList.add(o3ImageDto);
-//
-//        // 최종 DTO에 설정
-//        airPollutionImagesDto.setAirPollutionImages(airPollutionImagesList);
-//
-//        return airPollutionImagesDto;
-//    }
+        String stationName;
+        // 레디스에 데이터가 없을 경우 DB에서 조회
+        if (locationMap.isEmpty()) {
+            // 주소 id로 관측소 id 가져오기
+            Locations location = locationRepository.findById(locationId)
+                    .orElseThrow(()->new CustomException(ErrorCode.LOCATION_ERROR));
+            Long stationId = location.getStation().getId();
+//            System.out.println(stationId);
 
-    public List<AirQualityData> getAirQualityData(long id) {
+            // 관측소명 가져오기
+            AirQualityStations station = airQualityStationRepository.findById(stationId)
+                    .orElseThrow(()->new CustomException(ErrorCode.STATION_ERROR));
+            stationName = station.getStationName();
+            System.out.println("Station Name: " + stationName);
+
+            // Redis에 저장해두기
+            redisTemplate.opsForHash().put(redisKey, "stationName", stationName);
+        } else {
+            stationName = locationMap.get("stationName").toString();
+        }
+
+        // 대기질 정보 가져오기
+        String airRedisKey = "airData:" + stationName;
+        Map<Object, Object> airDataMap = redisTemplate.opsForHash().entries(airRedisKey);
+        List<AirQualityData> airQualityDataList = new ArrayList<>();
+
+        // 레디스에 대기질 정보가 없는 경우 RDS 조회
+        if (airDataMap.isEmpty()) {
+            airQualityDataList = getAirQualityDataFromDB(locationId);
+
+            // RDS에서 가져온 데이터를 Redis에 저장
+            for (AirQualityData airQualityData : airQualityDataList) {
+                String airDataJson = objectMapper.writeValueAsString(airQualityData);
+                redisTemplate.opsForHash().put(airRedisKey, airQualityData.getId().toString(), airDataJson);
+            }
+        } else {
+            // Redis에서 가져온 데이터를 AirQualityData 객체로 변환
+            for (Object value : airDataMap.values()) {
+                String airDataJson = (String) value;
+
+                // JSON 데이터를 AirQualityData 객체로 변환
+                AirQualityData airQualityData = objectMapper.readValue(airDataJson, AirQualityData.class);
+
+                // 리스트에 추가
+                airQualityDataList.add(airQualityData);
+            }
+        }
+
+        return airQualityDataList;
+    }
+
+    // 대기질 예측 이미지 조회 (레디스 사용)
+    public AirPollutionImageResponseDto getAirPollutionImage() {
+        AirPollutionImageResponseDto airPollutionImagesDto = new AirPollutionImageResponseDto();
+
+        // 각 informCode에 해당하는 이미지를 AirPollutionImage로 변환하여 리스트에 추가
+        List<AirPollutionImageResponseDto.AirPollutionImage> airPollutionImagesList = new ArrayList<>();
+
+        // PM10 이미지 설정
+        List<String> pm10Images = redisService.findByInformCode("PM10");
+        if (pm10Images.isEmpty()) {
+            // 레디스에 데이터가 없으면 RDS에서 조회
+            List<AirPollutionImages> pm10ImagesFromDB = airPollutionImageRepository.findByInformCode("PM10");
+            pm10Images = pm10ImagesFromDB.stream()
+                    .map(AirPollutionImages::getImageUrl)
+                    .collect(Collectors.toList());
+        }
+        AirPollutionImageResponseDto.AirPollutionImage pm10ImageDto = new AirPollutionImageResponseDto.AirPollutionImage();
+        pm10ImageDto.setInformCode("PM10");
+        pm10ImageDto.setImages(pm10Images);
+        airPollutionImagesList.add(pm10ImageDto);
+
+        // PM25 이미지 설정
+        List<String> pm25Images = redisService.findByInformCode("PM25");
+        if (pm25Images.isEmpty()) {
+            // 레디스에 데이터가 없으면 RDS에서 조회
+            List<AirPollutionImages> pm25ImagesFromDB = airPollutionImageRepository.findByInformCode("PM25");
+            pm25Images = pm25ImagesFromDB.stream()
+                    .map(AirPollutionImages::getImageUrl)
+                    .collect(Collectors.toList());
+        }
+        AirPollutionImageResponseDto.AirPollutionImage pm25ImageDto = new AirPollutionImageResponseDto.AirPollutionImage();
+        pm25ImageDto.setInformCode("PM25");
+        pm25ImageDto.setImages(pm25Images);
+        airPollutionImagesList.add(pm25ImageDto);
+
+        // O3 이미지 설정
+        List<String> o3Images = redisService.findByInformCode("O3");
+        if (o3Images.isEmpty()) {
+            // 레디스에 데이터가 없으면 RDS에서 조회
+            List<AirPollutionImages> o3ImagesFromDB = airPollutionImageRepository.findByInformCode("O3");
+            o3Images = o3ImagesFromDB.stream()
+                    .map(AirPollutionImages::getImageUrl)
+                    .collect(Collectors.toList());
+        }
+        AirPollutionImageResponseDto.AirPollutionImage o3ImageDto = new AirPollutionImageResponseDto.AirPollutionImage();
+        o3ImageDto.setInformCode("O3");
+        o3ImageDto.setImages(o3Images);
+        airPollutionImagesList.add(o3ImageDto);
+
+        redisScheduler.loadAirPollutionImageToRedis(); // 레디스에 이미지 저장
+
+        // 최종 DTO에 설정
+        airPollutionImagesDto.setAirPollutionImages(airPollutionImagesList);
+
+        return airPollutionImagesDto;
+    }
+
+    // RDS 사용
+    public List<AirQualityData> getAirQualityDataFromDB(long id) {
         // 주소 id로 관측소 id 가져오기
         Locations location = locationRepository.findById(id)
                 .orElseThrow(()->new CustomException(ErrorCode.LOCATION_ERROR));
         Long stationId = location.getStation().getId();
-        System.out.println(stationId);
+//        System.out.println(stationId);
 
         // 관측소명 가져오기
         AirQualityStations station = airQualityStationRepository.findById(stationId)
                 .orElseThrow(()->new CustomException(ErrorCode.STATION_ERROR));
         String stationName = station.getStationName();
-        System.out.println("Station Name: " + stationName);
+//        System.out.println("Station Name: " + stationName);
 
         // "0" 날짜 값을 NOW()로 업데이트
         airQualityDataRepository.updateZeroDateValues(stationName);
 
         // 해당 관측소 대기질 정보 조회
         List<AirQualityData> airQualityDataList = airQualityDataRepository.findByStationName(stationName);
-        System.out.println(airQualityDataList);
+//        System.out.println(airQualityDataList);
 
         // 대기질 정보가 존재하지 않을 경우
         if (airQualityDataList.isEmpty()) {
@@ -165,87 +245,5 @@ public class AirQualityService {
         }
 
         return airQualityDataList;
-    }
-
-
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-
-    public List<String> findByInformCode(String informCode) {
-        // Redis의 Set에서 모든 엔트리 키를 가져옴 (예: air_images:5)
-        Set<Object> keys = redisTemplate.opsForSet().members("air_images");
-
-        // 로그: Set 키 출력
-        System.out.println("Set keys: " + keys);
-
-        List<String> imageUrls = new ArrayList<>();
-
-        // 각 Set 엔트리 키에 대해 해시 조회
-        for (Object key : keys) {
-            if (key instanceof String || key instanceof Integer) {
-                // "air_images:<key>" 형식으로 변환
-                String hashKey = "air_images:" + key;
-
-                // 로그: 변환된 키 출력
-                System.out.println("Processing hash key: " + hashKey);
-
-                // 각 엔트리(예: air_images:5)를 해시로 조회
-                Map<Object, Object> entries = redisTemplate.opsForHash().entries(hashKey);
-
-                // 로그: 해시 엔트리 출력
-                System.out.println("Hash entries for key " + hashKey + ": " + entries);
-
-                // informCode가 일치하는 데이터만 필터링
-                if (entries != null && informCode.equals(entries.get("informCode"))) {
-                    // imageUrl 값을 리스트에 추가
-                    System.out.println("Matching informCode found: " + informCode + ", imageUrl: " + entries.get("imageUrl"));
-                    imageUrls.add((String) entries.get("imageUrl"));
-                }
-            }
-        }
-
-        // 로그: 최종 imageUrls 리스트 출력
-        System.out.println("Final imageUrls list: " + imageUrls);
-
-
-        return imageUrls; // 일치하는 모든 imageUrl 반환
-    }
-
-    // 대기질 예측 이미지 조회
-    // 레디스 사용 테스트
-    public AirPollutionImageResponseDto getAirPollutionImage() {
-
-        // 레디스에서 값 가져오기
-        List<String> pm10Images = findByInformCode("PM10");
-        List<String> pm25Images = findByInformCode("PM25");
-        List<String> o3Images = findByInformCode("O3");
-
-        AirPollutionImageResponseDto airPollutionImagesDto = new AirPollutionImageResponseDto();
-
-        // 각 informCode에 해당하는 이미지를 AirPollutionImage로 변환하여 리스트에 추가
-        List<AirPollutionImageResponseDto.AirPollutionImage> airPollutionImagesList = new ArrayList<>();
-
-        // PM10 이미지 설정
-        AirPollutionImageResponseDto.AirPollutionImage pm10ImageDto = new AirPollutionImageResponseDto.AirPollutionImage();
-        pm10ImageDto.setInformCode("PM10");
-        pm10ImageDto.setImages(pm10Images);
-        airPollutionImagesList.add(pm10ImageDto);
-
-        // PM25 이미지 설정
-        AirPollutionImageResponseDto.AirPollutionImage pm25ImageDto = new AirPollutionImageResponseDto.AirPollutionImage();
-        pm25ImageDto.setInformCode("PM25");
-        pm25ImageDto.setImages(pm25Images);
-        airPollutionImagesList.add(pm25ImageDto);
-
-        // O3 이미지 설정
-        AirPollutionImageResponseDto.AirPollutionImage o3ImageDto = new AirPollutionImageResponseDto.AirPollutionImage();
-        o3ImageDto.setInformCode("O3");
-        o3ImageDto.setImages(o3Images);
-        airPollutionImagesList.add(o3ImageDto);
-
-        // 최종 DTO에 설정
-        airPollutionImagesDto.setAirPollutionImages(airPollutionImagesList);
-
-        return airPollutionImagesDto;
     }
 }

@@ -5,6 +5,7 @@ import com.example.sumda.dto.airinfo.response.AirQualityDto;
 import com.example.sumda.service.AirPollutionImageService;
 import com.example.sumda.service.AirQualityService;
 import com.example.sumda.utils.ResponseUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,7 @@ public class AirQualityController {
 
     // 현재 대기질 정보 조회
     @GetMapping("/current")
-    public ResponseEntity<?> getNowAirInfoData(@RequestParam("id") Long id) {
+    public ResponseEntity<?> getNowAirInfoData(@RequestParam("id") Long id) throws JsonProcessingException {
         // null 값을 오류로 처리하지 않고 그대로 전달
         AirQualityDto airQualityDto = airQualityService.getNowAirQualityData(id);
         return ResponseUtils.createResponse(HttpStatus.OK, "현재 대기질 정보 조회 완료", airQualityDto);
@@ -33,7 +34,7 @@ public class AirQualityController {
 
     // 시간별 대기질 정보 조회
     @GetMapping("/time")
-    public ResponseEntity<?> getTimeAirInfoData(@RequestParam("id") Long id) {
+    public ResponseEntity<?> getTimeAirInfoData(@RequestParam("id") Long id) throws JsonProcessingException {
         // null 값을 오류로 처리하지 않고 그대로 전달
         List<AirQualityDto> airQualityDtoList = airQualityService.getTimeAirQualityData(id);
         return ResponseUtils.createResponse(HttpStatus.OK, "시간별 대기질 정보 조회 완료", airQualityDtoList);
