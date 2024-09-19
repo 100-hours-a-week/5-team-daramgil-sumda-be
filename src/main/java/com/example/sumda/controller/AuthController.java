@@ -6,6 +6,7 @@ import com.example.sumda.utils.CookieUtils;
 import com.example.sumda.utils.ResponseUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,9 +27,8 @@ public class AuthController {
     //TODO: 추후에 변경 예정
     @GetMapping("/check")
     public ResponseEntity<?> checkLoginStatus(@AuthenticationPrincipal CustomOAuth2User oAuth2User) {
-
         if (oAuth2User == null || oAuth2User.getName() == null) {
-            return ResponseUtils.createResponse(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.", null);
+            return ResponseUtils.createResponse(HttpStatus.UNAUTHORIZED, "로그인 상태가 아닙니다.", null);
         }
 
         return ResponseUtils.createResponse(HttpStatus.OK, "로그인 상태입니다.", null);
@@ -45,5 +45,28 @@ public class AuthController {
         } else {
             return ResponseUtils.createResponse(HttpStatus.UNAUTHORIZED, "Refresh token not found.", null);
         }
+    }
+
+    @GetMapping("/logout")
+    public ResponseEntity<?> logout(@AuthenticationPrincipal CustomOAuth2User oAuth2User,
+                                    HttpServletRequest request,
+                                    HttpServletResponse response) {
+
+        Long userId = oAuth2User.getId();
+
+        Optional<Cookie> refreshTokenCookie = CookieUtils.getCookie(request, "refresh_token");
+
+        if(refreshTokenCookie.isPresent()) {
+            tokenService.logout(userId,refreshTokenCookie.get().getValue());
+            Cookie deleteCookie = new Cookie("refresh_token", null);
+            deleteCookie.setMaxAge(0);
+            deleteCookie.setPath("/");
+            deleteCookie.setHttpOnly(true);
+            response.addCookie(deleteCookie);
+        } else {
+            return ResponseUtils.createResponse(HttpStatus.UNAUTHORIZED, "Refresh token not found.", null);
+        }
+
+        return ResponseUtils.createResponse(HttpStatus.OK, "로그아웃 성공", null);
     }
 }
