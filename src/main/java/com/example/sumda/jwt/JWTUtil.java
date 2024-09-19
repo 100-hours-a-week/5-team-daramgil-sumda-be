@@ -2,8 +2,7 @@ package com.example.sumda.jwt;
 
 import com.example.sumda.exception.CustomException;
 import com.example.sumda.exception.ErrorCode;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
@@ -59,29 +58,13 @@ public class JWTUtil {
 
             log.info("유저 id 반환");
             return userId;
-        } catch (JwtException | IllegalArgumentException e) {
-            log.warn("토큰이 유효하지 않습니다.");
+        } catch (SecurityException | MalformedJwtException | IllegalArgumentException |
+                 io.jsonwebtoken.security.SignatureException e) {
             throw new CustomException(ErrorCode.INVALID_TOKEN);
+        } catch (ExpiredJwtException e) {
+            throw new CustomException(ErrorCode.EXPIRED_TOKEN);
+        } catch (UnsupportedJwtException e) {
+            throw new CustomException(ErrorCode.UNSUPPORTED_TOKEN);
         }
     }
-
-    // Jwt 토큰의 유효기간을 확인하는 메서드
-    public boolean isTokenExpired(String token) {
-        try {
-            Date expirationDate = Jwts.parser()
-                    .verifyWith(this.getSigningKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody()
-                    .getExpiration();
-            log.info("토큰 유효기간 확인");
-
-            //현재 시간보다 이전이면 true를 반환
-            return expirationDate.before(new Date());
-        } catch (JwtException | IllegalArgumentException e) {
-            log.warn("토큰이 유효하지 않습니다.");
-            throw new CustomException(ErrorCode.INVALID_TOKEN);
-        }
-    }
-
 }

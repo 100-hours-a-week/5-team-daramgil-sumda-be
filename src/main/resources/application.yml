@@ -37,7 +37,7 @@ spring:
             provider: kakao
             client-authentication-method: client_secret_post
             authorization-grant-type: authorization_code
-            redirect-uri: "https://dev.sumda.co.kr/login/oauth2/code/kakao"
+            redirect-uri: ${KAKAO_REDIRECT_URI}
             scope: profile_nickname, profile_image
             client-name: Kakao
 

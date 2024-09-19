@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,15 +53,20 @@ public class AuthController {
                                     HttpServletResponse response) {
 
         Long userId = oAuth2User.getId();
-        System.out.println("현재 로그인 된 사용자: " + userId);
 
         Optional<Cookie> refreshTokenCookie = CookieUtils.getCookie(request, "refresh_token");
 
-        if (refreshTokenCookie.isPresent()) {
-            String refreshToken = refreshTokenCookie.get().getValue();
-            return ResponseUtils.createResponse(HttpStatus.OK, "액세스 토큰 재발급 성공", tokenService.reissueAccessToken(refreshToken));
+        if(refreshTokenCookie.isPresent()) {
+            tokenService.logout(userId,refreshTokenCookie.get().getValue());
+            Cookie deleteCookie = new Cookie("refresh_token", null);
+            deleteCookie.setMaxAge(0);
+            deleteCookie.setPath("/");
+            deleteCookie.setHttpOnly(true);
+            response.addCookie(deleteCookie);
         } else {
             return ResponseUtils.createResponse(HttpStatus.UNAUTHORIZED, "Refresh token not found.", null);
         }
+
+        return ResponseUtils.createResponse(HttpStatus.OK, "로그아웃 성공", null);
     }
 }

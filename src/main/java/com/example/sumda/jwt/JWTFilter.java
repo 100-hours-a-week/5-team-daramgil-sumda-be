@@ -8,12 +8,10 @@ import com.example.sumda.exception.ErrorCode;
 import com.example.sumda.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,7 +34,6 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // Authorization 헤더 검증
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            log.warn("Authorization 헤더가 없거나 Bearer로 시작하지 않음");
             filterChain.doFilter(request, response);
             return;
         }
@@ -44,17 +41,15 @@ public class JWTFilter extends OncePerRequestFilter {
         // "Bearer " 다음에 있는 토큰 값만 추출
         String token = authorizationHeader.substring(7);
 
-        //토큰 소멸 시간 검증
-        if (jwtUtil.isTokenExpired(token)) {
-
-            log.warn("token expired");
-            filterChain.doFilter(request, response);
-
+        //토큰에서 username과 role 획득
+        String userId;
+        try {
+            userId = jwtUtil.getUserIdFromToken(token);
+        } catch(CustomException e) {
+            log.warn("accessToken 검증 실패 : {}", e.getMessage());
+            setErrorResponse(response, e.getErrorCode());
             return;
         }
-
-        //토큰에서 username과 role 획득
-        String userId = jwtUtil.getUserIdFromToken(token);
 
         User user = userRepository.findById(Long.parseLong(userId)).orElseThrow(()->new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
@@ -71,5 +66,16 @@ public class JWTFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
         filterChain.doFilter(request, response);
+    }
+
+    // 필터에서 발생한 예외에 대한 응답을 설정
+    private void setErrorResponse(HttpServletResponse response, ErrorCode errorCode) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 기본적으로 401 상태 코드 설정
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        String jsonResponse = String.format("{\"errorCode\": \"%s\", \"message\": \"%s\"}",
+                errorCode.name(), errorCode.getMessage());
+        response.getWriter().write(jsonResponse);
     }
 }
