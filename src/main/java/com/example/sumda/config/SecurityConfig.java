@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -46,7 +47,7 @@ public class SecurityConfig {
                         .requestMatchers("/img/**","/images/**").permitAll()  // 이미지 경로 허용
                         .requestMatchers("/api/auth/reissue","/api/auth/check").permitAll()
                         .requestMatchers("/oauth2/authorization/**","/login/oauth2/code/**").permitAll()
-                        .requestMatchers("/api/auth/logout").authenticated()
+                        .anyRequest().authenticated()
                 )
                 .oauth2Login((oauth2) -> oauth2
                         .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
@@ -64,13 +65,16 @@ public class SecurityConfig {
                         .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
                         .accessDeniedHandler(new CustomAccessDeniedHandler()));
 
-
         //JWTFilter 추가
         http
                 .addFilterBefore(new JWTFilter(jwtUtil, userRepository), UsernamePasswordAuthenticationFilter.class);
 
-
-
         return http.build();
+    }
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring()
+                .requestMatchers("/api/locations/**", "/api/air/**", "/api/weather/**", "/api/official/**", "/api/inquiry/**", "/api/acweather/**","/api/ai/**","/api/health");
     }
 }
