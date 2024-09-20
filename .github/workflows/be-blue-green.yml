@@ -6,8 +6,6 @@ on:
 
 jobs:
   docker-build-and-push:
-  secrets:
-    environment: dev
     runs-on: ubuntu-latest
 
     steps:
