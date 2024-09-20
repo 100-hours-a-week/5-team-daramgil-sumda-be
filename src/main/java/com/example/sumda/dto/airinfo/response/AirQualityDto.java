@@ -5,25 +5,29 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 public class AirQualityDto {
-    private String dataTime;
-    private String khaiGrade;
-    private String khaiValue;
-    private String pm10Grade;
-    private String pm10Value;
-    private String pm25Grade;
-    private String pm25Value;
-    private String o3Grade;
-    private String o3Value;
-    private String no2Grade;
-    private String no2Value;
-    private String coGrade;
-    private String coValue;
+    private Long id;
+    private String station_name;
+    private String so2;
+    private String co;
+    private String o3;
+    private String no2;
+    private String pm10;
+    private String pm25;
     private String so2Grade;
-    private String so2Value;
-
+    private String coGrade;
+    private String o3Grade;
+    private String no2Grade;
+    private String pm10Grade;
+    private String pm25Grade;
+    private String khaiValue;
+    private String khaiGrade;
+    private LocalDateTime dataTime;
 }
