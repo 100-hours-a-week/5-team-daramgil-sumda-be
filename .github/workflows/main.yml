@@ -6,8 +6,6 @@ on:
 
 jobs:
   docker-build-and-push:
-  secrets:
-    environment: main
     runs-on: ubuntu-latest
 
     steps:
@@ -43,7 +41,8 @@ jobs:
           docker push ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be:latest
 
   docker-pull-and-run:
-    # 우리가 설정한 runner 의 실행 환경
+    secrets:
+    environment: main
     runs-on: ubuntu-latest
     needs: [ docker-build-and-push ]
     # 도커 이미지 빌드 및 리포지토리로 push 가 성공할 경우에만 진행
