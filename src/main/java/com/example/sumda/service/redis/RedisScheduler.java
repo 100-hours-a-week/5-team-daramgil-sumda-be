@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,6 +50,9 @@ public class RedisScheduler {
         // DB에서 모든 Locations 데이터 조회
         List<Locations> locationList = locationRepository.findAll();
 
+        // Redis에 저장 전에 이전 데이터 삭제
+        redisTemplate.delete("locations");
+
         // Redis에 location 데이터를 저장하면서, stationId에 해당하는 관측소 이름도 함께 저장
         for (Locations locations : locationList) {
             RedisLocations redisLocations = new RedisLocations();
@@ -77,10 +81,13 @@ public class RedisScheduler {
 
     // 대기오염 이미지 저장 (9개)
     @Transactional
-    @Scheduled(cron = "0 15 9,18 * * ?") // 오전 9시 5분, 오후 6시 5분
+    @Scheduled(cron = "0 15 9,18 * * ?")
     public void loadAirPollutionImageToRedis() {
         // DB에서 air pollution image 데이터 조회
         List<AirPollutionImages> airImageList = airPollutionImageRepository.findAll();
+
+        // Redis에 저장 전에 이전 데이터 삭제
+        redisTemplate.delete("airImages");
 
         // Redis에 일괄 저장
         for (AirPollutionImages airPollutionImages : airImageList) {
@@ -98,6 +105,17 @@ public class RedisScheduler {
     public void loadAirDataToRedis(){
         List<AirQualityData> airDataList = airQualityDataRepository.findAll();
         ObjectMapper objectMapper = new ObjectMapper(); // JSON 직렬화용
+
+        // 패턴에 맞는 모든 키 가져오기
+        Set<String> keys = redisTemplate.keys("airData:*");
+
+        // Redis에서 "airData:"로 시작하는 모든 키 삭제
+        if (keys != null && !keys.isEmpty()) {
+            redisTemplate.delete(keys); // 일괄 삭제
+            System.out.println("삭제된 airData 키 수: " + keys.size());
+        } else {
+            System.out.println("레디스에 삭제할 airData 키가 없습니다.");
+        }
 
         // Redis에 저장
         for (AirQualityData airData : airDataList) {
@@ -139,6 +157,9 @@ public class RedisScheduler {
     @Scheduled(cron = "0 14 9,18 * * ?")
     public void loadWeatherDataToRedis(){
         List<CityWeatherData> weatherDataList = cityWeatherDataRepository.findAll();
+
+        // Redis에 저장 전에 이전 데이터를 삭제
+        redisTemplate.delete("weatherData");
 
         for (CityWeatherData cityWeatherData : weatherDataList) {
             RedisWeatherData redisWeatherData = new RedisWeatherData();
