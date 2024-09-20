@@ -39,8 +39,7 @@ public class RedisScheduler {
     // 매일 특정 시간에 진행되는 스케줄링 메서드 - 지역 정보
     // "초 분 시 일 월 요일" 형식
     @Transactional
-//    @Scheduled(cron = "0 0 0 * * ?") // 매일 자정
-    @Scheduled(cron = "0 56 21 * * ?") // 매일 자정
+    @Scheduled(cron = "0 0 0 * * ?") // 매일 자정
     public void loadLocationsToRedis() {
         //DB에서 모든 관측소(AirQualityStations) 데이터를 조회하고 Map으로 변환 (Key: 관측소 ID, Value: 관측소 이름)
         List<AirQualityStations> stationList = airQualityStationRepository.findAll();
@@ -78,8 +77,7 @@ public class RedisScheduler {
 
     // 대기오염 이미지 저장 (9개)
     @Transactional
-//    @Scheduled(cron = "0 5 9,18 * * ?") // 오전 9시 5분, 오후 6시 5분
-    @Scheduled(cron = "0 56 21 * * ?") // 매일 자정
+    @Scheduled(cron = "0 15 9,18 * * ?") // 오전 9시 5분, 오후 6시 5분
     public void loadAirPollutionImageToRedis() {
         // DB에서 air pollution image 데이터 조회
         List<AirPollutionImages> airImageList = airPollutionImageRepository.findAll();
@@ -96,8 +94,7 @@ public class RedisScheduler {
 
     // 대기오염 데이터 저장
     @Transactional
-//    @Scheduled(cron = "0 15 9,18 * * ?")
-    @Scheduled(cron = "0 57 21 * * ?") // 매일 자정
+    @Scheduled(cron = "0 15 9,18 * * ?")
     public void loadAirDataToRedis(){
         List<AirQualityData> airDataList = airQualityDataRepository.findAll();
         ObjectMapper objectMapper = new ObjectMapper(); // JSON 직렬화용
@@ -139,8 +136,7 @@ public class RedisScheduler {
 
     // 날씨 데이터 저장
     @Transactional
-//    @Scheduled(cron = "0 14 9,18 * * ?")
-    @Scheduled(cron = "0 58 21 * * ?") // 매일 자정
+    @Scheduled(cron = "0 14 9,18 * * ?")
     public void loadWeatherDataToRedis(){
         List<CityWeatherData> weatherDataList = cityWeatherDataRepository.findAll();
 
