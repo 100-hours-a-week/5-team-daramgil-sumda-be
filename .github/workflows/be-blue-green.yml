@@ -2,10 +2,12 @@ name: Blue-Green Deployment
 
 on:
   push:
-    branches: [ main ]
+    branches: [ develop ]
 
 jobs:
   docker-build-and-push:
+  secrets:
+    environment: dev
     runs-on: ubuntu-latest
 
     steps:
