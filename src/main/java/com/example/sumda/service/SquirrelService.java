@@ -176,6 +176,7 @@ public class SquirrelService {
         UserSquirrel newSquirrel = new UserSquirrel();
         newSquirrel.setUserId(userId); // 유저 아이디
         newSquirrel.setSquTypeId(squirrelType); // 다람쥐 종류 id
+        newSquirrel.setLevel(1); // 신규 다람쥐 레벨 기본값 1
 
         // 엔티티 내용 저장
         userSquirrelRepository.save(newSquirrel);
