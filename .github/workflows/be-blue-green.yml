@@ -2,8 +2,7 @@ name: Blue-Green Deployment
 
 on:
   push:
-    branches:
-      - develop
+    branches: [ main ]
 
 jobs:
   docker-build-and-push:
