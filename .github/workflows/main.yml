@@ -78,7 +78,6 @@ jobs:
             echo 'JWT_REDIRECT_URI=${{ secrets.JWT_REDIRECT_URI }}' >> /home/${{ secrets.EC2_USER }}/.env
             echo 'KAKAO_REDIRECT_URI=${{ secrets.KAKAO_REDIRECT_URI }}' >> /home/${{ secrets.EC2_USER }}/.env
           EOF
-          
 
       # ghcr.io 리포지토리에 있는 이미지를 pull
       - name: ghcr.io 리포지토리에서 최신 이미지 가져오기
