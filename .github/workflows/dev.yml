@@ -22,8 +22,6 @@ jobs:
       - name: Clean and Build with Gradle
         run: |
           ./gradlew clean bootJar
-        env:
-          JAVA_HOME: /opt/java/openjdk
 
       # JAR 파일 확인
       - name: Check JAR file
