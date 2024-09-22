@@ -45,8 +45,9 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/img/**","/images/**").permitAll()  // 이미지 경로 허용
-                        .requestMatchers("/api/auth/reissue","/api/auth/check").permitAll()
-                        .requestMatchers("/oauth2/authorization/**","/login/oauth2/code/**").permitAll()
+//                        .requestMatchers("/api/auth/reissue","/api/auth/check").permitAll()
+//                        .requestMatchers("/oauth2/authorization/**","/login/oauth2/code/**").permitAll()
+                                .requestMatchers("/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login((oauth2) -> oauth2
