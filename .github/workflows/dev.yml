@@ -18,11 +18,17 @@ jobs:
           java-version: 17
           distribution: 'corretto'
 
-      # Gradle Build
-      - name: Build with Gradle
-        uses: gradle/gradle-build-action@v2.6.0
-        with:
-          arguments: bootJar
+      # Gradle Clean and Build
+      - name: Clean and Build with Gradle
+        run: |
+          ./gradlew clean bootJar
+        env:
+          JAVA_HOME: /opt/java/openjdk
+
+      # JAR 파일 확인
+      - name: Check JAR file
+        run: |
+          ls -l build/libs/sumda-0.0.1-SNAPSHOT.jar
 
       - name: Log in to GitHub Container Registry
         run: |
