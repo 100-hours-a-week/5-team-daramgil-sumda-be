@@ -85,6 +85,7 @@ jobs:
 
       - name: 사용하지 않는 도커 볼륨 삭제
         run: |
+          whoami
           echo y | docker volume prune -af
 
       - name: ghcr.io 리포지토리에서 최신 이미지 가져오기
