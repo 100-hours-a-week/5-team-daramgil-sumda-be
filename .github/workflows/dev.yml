@@ -88,7 +88,7 @@ jobs:
         run: |
           docker login ghcr.io -u ${{ github.repository_owner }} --password ${{ secrets.GHCR_TOKEN }}
           docker volume prune -f
-          docker pull --pull always ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be:latest
+          docker pull ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be:latest
 
       # deploy.sh 파일 서버로 전달하기
       - name: Send deploy.sh
