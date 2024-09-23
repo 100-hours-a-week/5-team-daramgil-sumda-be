@@ -87,7 +87,6 @@ jobs:
       - name: ghcr.io 리포지토리에서 최신 이미지 가져오기
         run: |
           docker login ghcr.io -u ${{ github.repository_owner }} --password ${{ secrets.GHCR_TOKEN }}
-          docker rmi ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be:latest
           docker volume prune -f
           docker pull --pull always ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be:latest
 
