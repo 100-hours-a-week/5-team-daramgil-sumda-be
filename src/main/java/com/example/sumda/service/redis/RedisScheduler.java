@@ -154,7 +154,8 @@ public class RedisScheduler {
 
     // 날씨 데이터 저장
     @Transactional
-    @Scheduled(cron = "0 14 9,18 * * ?")
+//    @Scheduled(cron = "0 14 9,18 * * ?")
+    // TODO: 날씨 서비스 코드 미 적용
     public void loadWeatherDataToRedis(){
         List<CityWeatherData> weatherDataList = cityWeatherDataRepository.findAll();
 
