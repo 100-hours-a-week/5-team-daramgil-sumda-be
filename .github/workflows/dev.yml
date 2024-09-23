@@ -83,9 +83,9 @@ jobs:
             echo 'KAKAO_REDIRECT_URI=${{ secrets.KAKAO_REDIRECT_URI }}' >> /home/${{ secrets.EC2_USER }}/.env
           EOF
 
-      - name: 사용하지 않는 도커 볼륨 삭제
-        run: |
-          docker volume ls -q --filter "dangling=true" | xargs -r docker volume rm
+#      - name: 사용하지 않는 도커 볼륨 삭제
+#        run: |
+#          docker volume ls -q --filter "dangling=true" | xargs -r docker volume rm
 
       - name: ghcr.io 리포지토리에서 최신 이미지 가져오기
         run: |
@@ -114,3 +114,7 @@ jobs:
             sudo chmod +x deploy.sh
             sudo ./deploy.sh
             docker image prune -f
+
+      - name: 사용하지 않는 도커 볼륨 삭제
+        run: |
+          docker volume ls -q --filter "dangling=true" | xargs -r docker volume rm
