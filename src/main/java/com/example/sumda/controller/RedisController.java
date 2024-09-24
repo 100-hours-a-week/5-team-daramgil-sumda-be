@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/redis")
-public class RedistController {
+public class RedisController {
 
     @Autowired
     private RedisScheduler redisScheduler;
