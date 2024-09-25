@@ -111,6 +111,6 @@ jobs:
           host: ${{ secrets.EC2_DEV_HOST }}
           key: ${{ secrets.EC2_KEY }}
           script: |
+            docker image prune -f
             sudo chmod +x deploy.sh
             ./deploy.sh
-            docker image prune -f
