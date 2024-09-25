@@ -1,19 +1,23 @@
 package com.example.sumda.entity.redis;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
 import java.time.LocalDateTime;
 
-@RedisHash(value = "air_data")
+@Getter
+@Setter
+@RedisHash(value = "airData")
 public class RedisAirData {
 
     @Id
     private Long id;
 
     private String stationName;
-    private  float so2;
-    private  float co;
+    private float so2;
+    private float co;
     private float o3;
     private float no2;
     private float pm10;
@@ -26,6 +30,6 @@ public class RedisAirData {
     private int pm25Grade;
     private int khaiValue;
     private int khaiGrade;
-    private LocalDateTime dataTime;
+    private String dataTime;
 
 }
