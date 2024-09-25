@@ -35,7 +35,7 @@ jobs:
       - name: Build Docker image
         run: |
           set -x
-          docker build --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} --progress=plain -t ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be:latest .
+          docker build --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} --progress=plain -t ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be:latest --no-cache .
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
@@ -83,13 +83,11 @@ jobs:
             echo 'KAKAO_REDIRECT_URI=${{ secrets.KAKAO_REDIRECT_URI }}' >> /home/${{ secrets.EC2_USER }}/.env
           EOF
 
-      - name: 사용하지 않는 도커 볼륨 삭제
-        run: |
-          docker volume ls -q --filter "dangling=true" | xargs -r docker volume rm
-
+      # ghcr.io 리포지토리에 있는 이미지를 pull
       - name: ghcr.io 리포지토리에서 최신 이미지 가져오기
         run: |
           docker login ghcr.io -u ${{ github.repository_owner }} --password ${{ secrets.GHCR_TOKEN }}
+          docker volume prune -f
           docker pull ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be:latest
 
       # deploy.sh 파일 서버로 전달하기
@@ -112,5 +110,5 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             sudo chmod +x deploy.sh
-            sudo ./deploy.sh
+            ./deploy.sh
             docker image prune -f
