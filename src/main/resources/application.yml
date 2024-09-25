@@ -25,7 +25,7 @@ spring:
     open-in-view: false
   data:
     redis:
-      host: dev.sumda.co.kr
+      host: ${REDIS_HOST_URI}
       port: 6379
 
   security:
