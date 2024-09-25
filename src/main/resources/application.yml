@@ -25,7 +25,7 @@ spring:
     open-in-view: false
   data:
     redis:
-      host: localhost
+      host: ${JWT_REDIRECT_URI}
       port: 6379
 
   security:
