@@ -27,6 +27,7 @@ spring:
     redis:
       host: ${REDIS_HOST_URI}
       port: 6379
+      password: ${REDIS_PASSWORD}
 
   security:
     oauth2:
