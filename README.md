@@ -11,7 +11,7 @@
 
 **숨쉬는 다람쥐**는 대기질과 날씨 정보를 실시간으로 확인하고, 귀여운 다람쥐와 함께 건강한 일상을 만들어가는 서비스입니다. 민감군(기저질환자, 노인, 어린이)에게 맞춤형 행동 요령을 제공하며, 게임 요소를 통해 더욱 재미있게 대기질 정보를 확인할 수 있습니다.
 
-![image](https://github.com/user-attachments/assets/61baafd0-dc79-44dd-a635-aa2d7d2137c5)
+![image](https://github.com/user-attachments/assets/2bb45a03-03f5-4e28-a8a4-fed5e660f2a5)
 
 ---
 
