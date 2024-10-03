@@ -102,7 +102,9 @@ public class AirQualityService {
             airQualityDto.setPm25Grade(String.valueOf(airQuality.getPm25Grade()));
             airQualityDto.setKhaiValue(String.valueOf(airQuality.getKhaiValue()));
             airQualityDto.setKhaiGrade(String.valueOf(airQuality.getKhaiGrade()));
-            airQualityDto.setDataTime(LocalDateTime.parse(airQuality.getDataTime()));
+            // 각 AirQualityData의 dataTime을 파싱
+            LocalDateTime parseDateTime = parseDateTime(airQuality.getDataTime());
+            airQualityDto.setDataTime(parseDateTime);
             return airQualityDto;
         }).collect(Collectors.toList());
 
