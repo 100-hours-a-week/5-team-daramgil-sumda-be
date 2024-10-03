@@ -3,6 +3,7 @@ package com.example.sumda.controller;
 import com.example.sumda.entity.CityWeatherData;
 import com.example.sumda.service.AccuWeatherService;
 import com.example.sumda.utils.ResponseUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class AccuWeatherController {
     private final AccuWeatherService accuWeatherService;
 
     @GetMapping("")
-    public ResponseEntity<CityWeatherData> getAccuWeather(@RequestParam("id") Long id) {
+    public ResponseEntity<CityWeatherData> getAccuWeather(@RequestParam("id") Long id) throws JsonProcessingException {
         // Service를 호출하여 비즈니스 로직을 처리하고 결과를 반환합니다.
         CityWeatherData weatherData = accuWeatherService.getCityWeatherData(id);
         return ResponseEntity.ok(weatherData);
