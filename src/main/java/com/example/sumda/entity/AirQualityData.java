@@ -8,8 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -69,6 +67,6 @@ public class AirQualityData {
     private Integer khaiGrade;
 
     @Column(name = "data_time")
-    private LocalDateTime dataTime;
+    private String dataTime;
 
 }

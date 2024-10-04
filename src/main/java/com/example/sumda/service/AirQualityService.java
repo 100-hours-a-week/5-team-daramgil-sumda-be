@@ -8,6 +8,7 @@ import com.example.sumda.entity.AirQualityStations;
 import com.example.sumda.entity.Locations;
 import com.example.sumda.entity.redis.RedisAirData;
 import com.example.sumda.entity.redis.RedisAirPollutionImages;
+import com.example.sumda.entity.redis.RedisLocations;
 import com.example.sumda.exception.CustomException;
 import com.example.sumda.exception.ErrorCode;
 import com.example.sumda.repository.AirPollutionImageRepository;
@@ -15,6 +16,7 @@ import com.example.sumda.repository.AirQualityDataRepository;
 import com.example.sumda.repository.AirQualityStationRepository;
 import com.example.sumda.repository.LocationRepository;
 import com.example.sumda.repository.redis.AirPollutionImageRedisRepository;
+import com.example.sumda.repository.redis.LocationRedisRepository;
 import com.example.sumda.service.redis.RedisScheduler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,6 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,11 +41,10 @@ public class AirQualityService {
     private final AirQualityDataRepository airQualityDataRepository;
     private final LocationRepository locationRepository;
     private final AirPollutionImageRepository airPollutionImageRepository;
-    private final AirPollutionImageRedisRepository airPollutionImageRedisRepository;
+    private final LocationRedisRepository locationRedisRepository;
     private final RedisService redisService;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
-    private final RedisScheduler redisScheduler;
 
 
     // 측정소별 실시간 측정정보 - 대기질
@@ -50,6 +53,8 @@ public class AirQualityService {
        List<AirQualityData> airQualityDataList = getAirQualityData(locationId);
 
         AirQualityData airQuality = airQualityDataList.get(9); // 가장 최근 데이터
+
+        LocalDateTime parseDateTime = parseDateTime(airQuality.getDataTime());
 
         AirQualityDto airQualityDto = new AirQualityDto();
         airQualityDto.setId(airQuality.getId());
@@ -68,7 +73,7 @@ public class AirQualityService {
         airQualityDto.setPm25Grade(String.valueOf(airQuality.getPm25Grade()));
         airQualityDto.setKhaiValue(String.valueOf(airQuality.getKhaiValue()));
         airQualityDto.setKhaiGrade(String.valueOf(airQuality.getKhaiGrade()));
-        airQualityDto.setDataTime(airQuality.getDataTime());
+        airQualityDto.setDataTime(parseDateTime);
 
         return airQualityDto;
     }
@@ -97,7 +102,9 @@ public class AirQualityService {
             airQualityDto.setPm25Grade(String.valueOf(airQuality.getPm25Grade()));
             airQualityDto.setKhaiValue(String.valueOf(airQuality.getKhaiValue()));
             airQualityDto.setKhaiGrade(String.valueOf(airQuality.getKhaiGrade()));
-            airQualityDto.setDataTime(airQuality.getDataTime());
+            // 각 AirQualityData의 dataTime을 파싱
+            LocalDateTime parseDateTime = parseDateTime(airQuality.getDataTime());
+            airQualityDto.setDataTime(parseDateTime);
             return airQualityDto;
         }).collect(Collectors.toList());
 
@@ -105,10 +112,10 @@ public class AirQualityService {
     }
 
     // 주소 id로 대기질 정보 가져오기 (레디스 사용)
-    public List<AirQualityData> getAirQualityData(long locationId) throws JsonProcessingException {
+    private List<AirQualityData> getAirQualityData(long locationId) throws JsonProcessingException {
         // 주소 id로 관측소명 가져오기
         String redisKey = "locations:" + locationId;
-        Map<Object, Object> locationMap = redisTemplate.opsForHash().entries(redisKey);
+        Map<String,String> locationMap = redisTemplate.<String, String>opsForHash().entries(redisKey);
 
         String stationName;
         // 레디스에 데이터가 없을 경우 DB에서 조회
@@ -125,35 +132,40 @@ public class AirQualityService {
             stationName = station.getStationName();
 //            System.out.println("Station Name: " + stationName);
 
+            // 레디스 객체 생성
+            RedisLocations redisLocations = new RedisLocations();
+            redisLocations.setId(location.getId());
+            redisLocations.setCityWeatherId(location.getCityWeatherId());
+            redisLocations.setDistrict(location.getDistrict());
+            redisLocations.setLatitude(location.getLatitude());
+            redisLocations.setLongitude(location.getLongitude());
+            redisLocations.setStationId(location.getStation().getId());
+            redisLocations.setStationName(stationName);
+
             // Redis에 저장해두기
-            redisTemplate.opsForHash().put(redisKey, "stationName", stationName);
+            locationRedisRepository.save(redisLocations); // location:1
         } else {
-            stationName = locationMap.get("stationName").toString();
+            stationName = locationMap.get("stationName");
         }
 
         // 대기질 정보 가져오기
         String airRedisKey = "airData:" + stationName;
-        Map<Object, Object> airDataMap = redisTemplate.opsForHash().entries(airRedisKey);
+        Map<String, String> airDataMap = redisTemplate.<String,String>opsForHash().entries(airRedisKey);
         List<AirQualityData> airQualityDataList = new ArrayList<>();
 
         // 레디스에 대기질 정보가 없는 경우 RDS 조회
         if (airDataMap.isEmpty()) {
             airQualityDataList = getAirQualityDataFromDB(locationId);
 
-            // RDS에서 가져온 데이터를 Redis에 저장
+            // RDS에서 가져온 데이터를 Redis에 저장 (JSON 직렬화 후 저장)
             for (AirQualityData airQualityData : airQualityDataList) {
-                String airDataJson = objectMapper.writeValueAsString(airQualityData);
-                redisTemplate.opsForHash().put(airRedisKey, airQualityData.getId().toString(), airDataJson);
+                String jsonData = objectMapper.writeValueAsString(airQualityData);
+                redisTemplate.opsForHash().put(airRedisKey, airQualityData.getId().toString(), jsonData);
             }
         } else {
             // Redis에서 가져온 데이터를 AirQualityData 객체로 변환
-            for (Object value : airDataMap.values()) {
-                String airDataJson = (String) value;
-
-                // JSON 데이터를 AirQualityData 객체로 변환
-                AirQualityData airQualityData = objectMapper.readValue(airDataJson, AirQualityData.class);
-
-                // 리스트에 추가
+            for (String value : airDataMap.values()) {
+                AirQualityData airQualityData = objectMapper.readValue(value, AirQualityData.class); // JSON -> 객체 변환
                 airQualityDataList.add(airQualityData);
             }
         }
@@ -258,5 +270,10 @@ public class AirQualityService {
         }
 
         return airQualityDataList;
+    }
+
+    private LocalDateTime parseDateTime(String dateTimeString) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return LocalDateTime.parse(dateTimeString, formatter);
     }
 }
