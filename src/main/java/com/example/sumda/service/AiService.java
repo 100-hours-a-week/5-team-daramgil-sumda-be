@@ -27,8 +27,6 @@ import java.util.Map;
 public class AiService {
 
     private final ChatClient chatClient;
-    private final RedisService redisService;
-    private final LocationService locationService;
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
 
@@ -70,9 +68,6 @@ public class AiService {
                     .content();
 
             WeatherAndAirReviewResponseDto responseDto = WeatherAndAirReviewResponseDto.of(oneLineReview, oneLineWeather, review);
-
-            // Redis에 캐시 저장
-            redisTemplate.opsForValue().set(dto.toString(),responseDto);
 
             return responseDto;
         } catch(Exception e) {
