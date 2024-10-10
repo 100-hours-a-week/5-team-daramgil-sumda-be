@@ -22,10 +22,10 @@ public class GameController {
     // 게임 결과 처리
     @PostMapping("/result")
     public ResponseEntity<?> gameResult(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal CustomOAuth2User oAuth2User,
             @RequestBody GameResultRequestDto gameResultRequestDto) {
 
-//        Long userId = oAuth2User.getId(); // 인증된 사용자로부터 userId 추출
+        Long userId = oAuth2User.getId(); // 인증된 사용자로부터 userId 추출
         int score = gameResultRequestDto.getScore(); // 게임 점수
         GameResultResponseDto gameResultResponseDto = gameService.gameResult(userId, gameResultRequestDto);
 
