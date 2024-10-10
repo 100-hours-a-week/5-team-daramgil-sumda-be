@@ -55,7 +55,6 @@ start_container() {
     local SERVER_URL=$3
 
     echo "$COLOR 컨테이너를 띄우는 중"
-    docker-compose -f ${DOCKER_COMPOSE_FILE_NAME}.yml pull
     docker-compose -p ${CONTAINER_NAME}-$COLOR -f ${DOCKER_COMPOSE_FILE_NAME}.yml up -d
     echo "${CONTAINER_SETUP_DELAY_SECOND}초 대기"
     sleep $CONTAINER_SETUP_DELAY_SECOND
