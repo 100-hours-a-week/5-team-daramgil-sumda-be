@@ -9,10 +9,13 @@ import com.example.sumda.dto.ai.response.ClothesReasonResponseDto;
 import com.example.sumda.dto.ai.response.WeatherAndAirReviewResponseDto;
 import com.example.sumda.exception.CustomException;
 import com.example.sumda.exception.ErrorCode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,14 +27,25 @@ import java.util.Map;
 public class AiService {
 
     private final ChatClient chatClient;
-    private final RedisService redisService;
-    private final LocationService locationService;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final ObjectMapper objectMapper;
 
+    // 동일한 dto로 들어온 요청에 대헤 캐시 적용
+    @Cacheable(value = "summaryAiCache", key = "#dto.toString()")
     public WeatherAndAirReviewResponseDto getSummaryAi(WeatherAndAirRequestDto dto) {
 
         try {
+            // Redis에서 캐시데이터 가져오기
+            Object cachedResponse = redisTemplate.opsForValue().get(dto.toString());
 
+            // 캐시된 데이터가 있을 경우 JSON 문자열을 객체로 변환
+            if (cachedResponse != null) {
+                String cachedJson = (String) cachedResponse;
+                WeatherAndAirReviewResponseDto responseDto = objectMapper.readValue(cachedJson, WeatherAndAirReviewResponseDto.class);
+                return responseDto;
+            }
 
+            // 캐시에 저장된 값이 없을 때 AI 동작
             String combinedAirInfo = String.format("민감군 여부: %s, 대기환경지수 값: %d, 대기환경지수 등급: %d",
                     dto.getSensitiveGroup(), dto.getKhaiValue(), dto.getKhaiGrade());
             String oneLineReview = chatClient.prompt()
@@ -53,9 +67,9 @@ public class AiService {
                     .call()
                     .content();
 
+            WeatherAndAirReviewResponseDto responseDto = WeatherAndAirReviewResponseDto.of(oneLineReview, oneLineWeather, review);
 
-
-            return WeatherAndAirReviewResponseDto.of(oneLineReview, oneLineWeather, review);
+            return responseDto;
         } catch(Exception e) {
             System.out.println(e.getMessage());
             log.error("AI 서비스 호출 중 오류가 발생했습니다.", e);
@@ -63,6 +77,7 @@ public class AiService {
         }
     }
 
+    @Cacheable(value = "activityRecommendCache", key = "#dto.toString()")
     public List<ActivityReasonResponseDto> getActivityRecommend(WeatherAirDetailRequestDto dto) {
 
         try {
@@ -80,6 +95,7 @@ public class AiService {
         }
     }
 
+    @Cacheable(value = "clotheRecommendCache", key = "#dto")
     public List<ClothesReasonResponseDto> getClothesRecommend(WeatherRequestDto dto) {
 
         try {

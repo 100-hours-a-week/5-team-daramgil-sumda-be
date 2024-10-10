@@ -6,13 +6,13 @@ import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
+import lombok.Setter;
 
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
+@Setter
 public class AirQualityData {
 
     @Id
@@ -67,6 +67,6 @@ public class AirQualityData {
     private Integer khaiGrade;
 
     @Column(name = "data_time")
-    private LocalDateTime dataTime;
+    private String dataTime;
 
 }

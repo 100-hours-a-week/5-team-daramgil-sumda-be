@@ -7,7 +7,7 @@ import org.springframework.data.redis.core.RedisHash;
 
 @Getter
 @Setter
-@RedisHash(value = "air_pollution_images")
+@RedisHash(value = "airImages")
 public class RedisAirPollutionImages {
 
     @Id

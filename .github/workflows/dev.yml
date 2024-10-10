@@ -35,14 +35,15 @@ jobs:
       - name: Build Docker image
         run: |
           set -x
-          docker build --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} --progress=plain -t ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be:latest --no-cache .
+          docker build --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} --progress=plain -t ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be --no-cache .
+
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Push Docker image to GHCR
         run: |
           set -x
-          docker push ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be:latest
+          docker push ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be
 
   docker-pull-and-run:
     environment: dev
@@ -81,16 +82,15 @@ jobs:
             echo 'REFRESH_TOKEN_EXPIRATION_TIME=86400000' >> /home/${{ secrets.EC2_USER }}/.env
             echo 'JWT_REDIRECT_URI=${{ secrets.JWT_REDIRECT_URI }}' >> /home/${{ secrets.EC2_USER }}/.env
             echo 'KAKAO_REDIRECT_URI=${{ secrets.KAKAO_REDIRECT_URI }}' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'REDIS_HOST_URI=${{ secrets.REDIS_HOST_URI }}' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}' >> /home/${{ secrets.EC2_USER }}/.env
           EOF
 
-      - name: 사용하지 않는 도커 볼륨 삭제
-        run: |
-          docker volume ls -q --filter "dangling=true" | xargs -r docker volume rm
-
+      # ghcr.io 리포지토리에 있는 이미지를 pull
       - name: ghcr.io 리포지토리에서 최신 이미지 가져오기
         run: |
           docker login ghcr.io -u ${{ github.repository_owner }} --password ${{ secrets.GHCR_TOKEN }}
-          docker pull ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be:latest
+          docker pull ghcr.io/${{ github.repository_owner }}/5-team-daramgil-sumda-be
 
       # deploy.sh 파일 서버로 전달하기
       - name: Send deploy.sh
@@ -111,6 +111,7 @@ jobs:
           host: ${{ secrets.EC2_DEV_HOST }}
           key: ${{ secrets.EC2_KEY }}
           script: |
+            docker image prune -f
+            docker volume prune -f
             sudo chmod +x deploy.sh
             ./deploy.sh
-            docker image prune -f

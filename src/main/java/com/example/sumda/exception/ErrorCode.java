@@ -51,6 +51,11 @@ public enum ErrorCode {
     LOCATION_ERROR(HttpStatus.BAD_REQUEST, "위치 정보가 잘못되었습니다"),
     STATION_ERROR(HttpStatus.NOT_FOUND,"주변 관측소를 찾을 수 없습니다."),
 
+    // Redis 오류
+    REDIS_DATA_ERROR(HttpStatus.NOT_FOUND,"정보가 없습니다."),
+    DATA_FORMAT_ERROR(HttpStatus.BAD_REQUEST,"데이터 포맷이 올바르지 않습니다."),
+
+
     // 서버 오류
     SEVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,  "서버 오류"),
     JSON_PARSE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "json 파싱 오류"),
