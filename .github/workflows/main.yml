@@ -77,6 +77,8 @@ jobs:
             echo 'REFRESH_TOKEN_EXPIRATION_TIME=86400000' >> /home/${{ secrets.EC2_USER }}/.env
             echo 'JWT_REDIRECT_URI=${{ secrets.JWT_REDIRECT_URI }}' >> /home/${{ secrets.EC2_USER }}/.env
             echo 'KAKAO_REDIRECT_URI=${{ secrets.KAKAO_REDIRECT_URI }}' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'REDIS_HOST_URI=${{ secrets.REDIS_HOST_URI }}' >> /home/${{ secrets.EC2_USER }}/.env
+            echo 'REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}' >> /home/${{ secrets.EC2_USER }}/.env
           EOF
 
       # ghcr.io 리포지토리에 있는 이미지를 pull
